@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>災害用伝言板｜防災情報センター</title>
+<meta name="description" content="災害時の安否・連絡を書き残せる伝言板。引き継ぎコードで参加し、ひとことメッセージを共有できます。">
+<style>
+  :root{
+    --bg:#04080f; --surface:#080f1e; --surface2:#0c1628; --surface3:#101d30;
+    --accent:#ff2d2d; --accent2:#ff8c00; --blue:#00b4ff;
+    --text:#d8eaf8; --muted:#4a6a8a;
+    --border:rgba(0,180,255,0.12); --border-red:rgba(255,45,45,0.2);
+    --ok:#2fd07a;
+    --glow-blue:0 0 24px rgba(0,180,255,0.08);
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#eef3f8; --surface:#ffffff; --surface2:#e9eff6; --surface3:#dde6f0;
+      --accent:#cc1111; --accent2:#d46000; --blue:#0070cc;
+      --text:#10202e; --muted:#52677a; --border:rgba(0,112,204,0.18);
+      --border-red:rgba(204,17,17,0.2); --ok:#1f9d5b;
+      --glow-blue:0 2px 14px rgba(0,112,204,0.08);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 500px at 50% -10%, rgba(0,180,255,0.06), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Segoe UI",sans-serif;
+    line-height:1.7; min-height:100vh;
+  }
+  .wrap{max-width:680px;margin:0 auto;padding:0 16px 48px;}
+
+  /* ヘッダー */
+  header.top{
+    position:sticky;top:0;z-index:10;
+    background:linear-gradient(180deg, rgba(4,8,15,0.96), rgba(4,8,15,0.86));
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);
+  }
+  @media (prefers-color-scheme: light){
+    header.top{background:linear-gradient(180deg,rgba(255,255,255,0.97),rgba(255,255,255,0.88));}
+  }
+  .top-inner{max-width:680px;margin:0 auto;padding:13px 16px;display:flex;align-items:center;gap:12px;}
+  .top-badge{
+    flex-shrink:0;width:38px;height:38px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;font-size:20px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    box-shadow:0 4px 14px rgba(255,45,45,0.3);
+  }
+  .top-titles h1{margin:0;font-size:17px;letter-spacing:0.02em;font-weight:800;}
+  .top-titles .sub{font-size:11px;color:var(--muted);letter-spacing:0.14em;font-weight:600;}
+
+  /* 状態表示 */
+  .status-strip{
+    display:flex;align-items:center;gap:8px;justify-content:center;
+    font-size:11.5px;color:var(--muted);
+    padding:8px 12px;border-bottom:1px solid var(--border);
+    background:var(--surface);
+  }
+  .status-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);}
+  .status-dot.off{background:var(--muted);box-shadow:none;}
+
+  /* リード */
+  .lead{
+    margin:18px 0 12px;padding:14px 16px;
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    font-size:13px;color:var(--text);line-height:1.85;box-shadow:var(--glow-blue);
+  }
+  .lead b{color:var(--blue);}
+  .lead .hint{display:block;margin-top:6px;font-size:11.5px;color:var(--muted);}
+
+  /* メッセージ一覧 */
+  .board{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:14px;box-shadow:var(--glow-blue);
+  }
+  .board-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .board-head .label{
+    font-size:12px;font-weight:700;letter-spacing:0.1em;color:var(--blue);
+  }
+  .refresh-btn{
+    background:none;border:1px solid var(--border);color:var(--muted);
+    font-size:11px;border-radius:7px;padding:5px 10px;cursor:pointer;
+  }
+  .refresh-btn:hover{color:var(--text);border-color:var(--blue);}
+  .messages{
+    max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;
+    padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  }
+  .messages::-webkit-scrollbar{width:7px;}
+  .messages::-webkit-scrollbar-thumb{background:rgba(0,180,255,0.22);border-radius:4px;}
+  .empty{color:var(--muted);font-size:13px;text-align:center;padding:26px 8px;line-height:1.8;}
+  .msg{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 12px;}
+  .msg.mine{border-color:rgba(0,180,255,0.5);background:rgba(0,180,255,0.06);}
+  .msg-head{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
+  .msg-name{font-size:12px;font-weight:700;color:var(--blue);}
+  .msg-time{font-size:10px;color:var(--muted);}
+  .msg-report{margin-left:auto;font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;}
+  .msg-report:hover{color:var(--accent);}
+  .msg-body{font-size:14px;color:var(--text);line-height:1.65;word-break:break-word;white-space:pre-wrap;}
+
+  /* 参加フォーム */
+  .login-box{
+    margin-top:14px;background:var(--surface2);border:1px solid var(--border);
+    border-radius:10px;padding:14px;
+  }
+  .login-title{font-size:14px;font-weight:700;margin-bottom:6px;}
+  .login-desc{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:11px;}
+  input.field{
+    width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    padding:11px 12px;color:var(--text);font-size:14px;
+  }
+  input.field::placeholder{color:var(--muted);}
+  input.field:focus{outline:none;border-color:var(--blue);}
+  .btn-primary{
+    border:none;border-radius:8px;background:var(--blue);color:#fff;
+    font-weight:700;font-size:14px;cursor:pointer;padding:11px 22px;
+    transition:opacity .15s;
+  }
+  .btn-primary:hover{opacity:.9;}
+  .btn-primary:disabled{opacity:.5;cursor:default;}
+  .login-help{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;}
+
+  /* 投稿フォーム */
+  .post-box{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
+  .loggedin{font-size:12px;color:var(--ok);font-weight:700;}
+  .send-row{display:flex;gap:8px;}
+  .send-row .field{flex:1;}
+  .logout-btn{align-self:flex-start;background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;padding:0;margin-top:2px;}
+
+  .note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.7;}
+
+  footer.foot{
+    margin-top:26px;padding-top:16px;border-top:1px solid var(--border);
+    font-size:11px;color:var(--muted);line-height:1.8;text-align:center;
+  }
+  footer.foot a{color:var(--blue);text-decoration:none;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="top-badge">📨</div>
+    <div class="top-titles">
+      <h1>災害用伝言板</h1>
+      <div class="sub">DISASTER MESSAGE BOARD</div>
+    </div>
+  </div>
+</header>
+
+<div class="status-strip">
+  <span class="status-dot" id="statusDot"></span>
+  <span id="statusText">接続を確認しています…</span>
+</div>
+
+<div class="wrap">
+
+  <div class="lead">
+    災害時の<b>安否や連絡</b>を、ここに書き残せます。家族や知人へのひとことを共有しましょう。<br>
+    閲覧は誰でもできます。書き込みには<b>引き継ぎコード</b>での参加が必要です。
+    <span class="hint">例：「○○、無事です。△△の避難所にいます」「電話つながりにくいのでここに連絡ください」</span>
+  </div>
+
+  <div class="board">
+    <div class="board-head">
+      <span class="label">// みんなの伝言</span>
+      <button type="button" class="refresh-btn" onclick="loadChat()">↻ 更新</button>
+    </div>
+    <div class="messages" id="chatMessages">
+      <div class="empty">伝言を読み込み中…</div>
+    </div>
+
+    <!-- 未参加：参加フォーム -->
+    <div id="chatLoginBox" class="login-box">
+      <div class="login-title">🔑 伝言板に参加する</div>
+      <div class="login-desc">スタンプカードの「引き継ぎコード」を入力すると参加できます。表示名は初回に決めると、以後固定されます（なりすまし防止）。</div>
+      <input type="text" id="chatLoginCode" class="field" maxlength="13" placeholder="引き継ぎコード（例：DWA-AB12-CD34）" style="text-transform:uppercase;">
+      <input type="text" id="chatLoginName" class="field" maxlength="20" placeholder="表示名（初回のみ・空欄で匿名）" style="margin-top:8px;">
+      <button type="button" id="chatLoginBtn" class="btn-primary" style="margin-top:10px;width:100%;" onclick="chatLogin()">参加する</button>
+      <div class="login-help">コードは防災情報センターの「スタンプカード」から確認できます。</div>
+    </div>
+
+    <!-- 参加後：投稿フォーム -->
+    <div id="chatPostBox" class="post-box" style="display:none;">
+      <div class="loggedin" id="chatLoggedin"></div>
+      <div class="send-row">
+        <input type="text" id="chatMessage" class="field" maxlength="140" placeholder="伝言を入力（140字まで）" onkeydown="if(event.key==='Enter')submitChat()">
+        <button type="button" id="chatSendBtn" class="btn-primary" onclick="submitChat()">送信</button>
+      </div>
+      <button type="button" class="logout-btn" onclick="chatLogout()">ログアウト</button>
+    </div>
+
+    <div class="note">※ 伝言は自動で更新されます。不適切な投稿は「⚠ 通報」でお知らせください。緊急の通報・救助要請は <b>119番／110番</b> へ。</div>
+  </div>
+
+  <footer class="foot">
+    防災情報センター 災害用伝言板<br>
+    <a href="https://bousai0111.info/" target="_blank" rel="noopener">▶ 防災情報センター本体へ</a>
+  </footer>
+
+</div>
+
+<script>
+/* ===== 同じGASバックエンドを使う（本体とデータ共有） ===== */
+const ARTICLES_URL = 'https://script.google.com/macros/s/AKfycby8yqQ-1sIZrcpKfzi1D7teL7ogBQHQWUKjzEAYjE8qe76y0biy2IHvkULjeEWuzoCHNA/exec';
+
+const CHAT_POLL_MS = 8000;
+const CHAT_MIN_INTERVAL = 5000;
+const CHAT_NG = ['死ね','殺す','しね','ころす'];
+const CHAT_LOGIN_KEY = 'chat_login_v1';
+let _chatLastSent = 0;
+let _chatPollTimer = null;
+let _chatLastCount = -1;
+
+function escapeHtmlA(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* ===== ログイン状態（localStorage・本体と同じキー） ===== */
+function getChatLogin(){
+  try { return JSON.parse(localStorage.getItem(CHAT_LOGIN_KEY) || 'null'); } catch(e){ return null; }
+}
+function setChatLogin(obj){
+  try { localStorage.setItem(CHAT_LOGIN_KEY, JSON.stringify(obj)); } catch(e){}
+}
+function clearChatLogin(){
+  try { localStorage.removeItem(CHAT_LOGIN_KEY); } catch(e){}
+}
+function isChatLoggedIn(){
+  const l = getChatLogin();
+  return !!(l && l.code && /^DWA-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(l.code));
+}
+function chatSelfId(){
+  const l = getChatLogin();
+  return (l && l.code) ? l.code : '';
+}
+
+/* ===== 引き継ぎコードで参加 ===== */
+async function chatLogin(){
+  const codeEl = document.getElementById('chatLoginCode');
+  const nameEl = document.getElementById('chatLoginName');
+  const btn    = document.getElementById('chatLoginBtn');
+  const code = (codeEl.value || '').trim().toUpperCase();
+  const name = (nameEl.value || '').trim().slice(0, 20);
+  if(!/^DWA-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)){
+    alert('コードの形式が違います（例：DWA-AB12-CD34）');
+    return;
+  }
+  if(!ARTICLES_URL || ARTICLES_URL.indexOf('http') !== 0){ alert('サーバー未設定のため参加できません。'); return; }
+  btn.disabled = true; btn.textContent = '確認中…';
+  try {
+    let password = '';
+    try { password = localStorage.getItem('stamp_pw') || ''; } catch(e){}
+    let d = await _fetchChatLogin(code, name, password);
+    let tries = 0;
+    while (d && d.ok && d.found && d.needPassword && tries < 3) {
+      password = prompt('このコードにはパスワードが設定されています。\n参加するにはパスワードを入力してください。');
+      if (password === null) { btn.disabled = false; btn.textContent = '参加する'; return; }
+      d = await _fetchChatLogin(code, name, password);
+      tries++;
+      if (d && d.needPassword && tries >= 3) {
+        alert('パスワードが一致しませんでした。\nお困りの場合はお問い合わせください。');
+        btn.disabled = false; btn.textContent = '参加する'; return;
+      }
+    }
+    if(!d || !d.ok || !d.found){
+      alert('このコードはスタンプ台帳に見つかりませんでした。\nスタンプを1つでも獲得するとコードが有効になります。');
+      btn.disabled = false; btn.textContent = '参加する';
+      return;
+    }
+    try { if (password) localStorage.setItem('stamp_pw', password); } catch(e){}
+    setChatLogin({ code: code, name: d.name || name || '匿名' });
+    refreshChatLoginUI();
+  } catch(e){
+    alert('通信エラーで参加できませんでした。時間をおいてお試しください。');
+  }
+  btn.disabled = false; btn.textContent = '参加する';
+}
+
+async function _fetchChatLogin(code, name, password){
+  let url = ARTICLES_URL + '?type=chat_login&code=' + encodeURIComponent(code)
+          + '&name=' + encodeURIComponent(name);
+  if (password) url += '&password=' + encodeURIComponent(password);
+  url += '&_=' + Date.now();
+  const res = await fetch(url, { method:'GET' });
+  return await res.json();
+}
+
+function chatLogout(){
+  clearChatLogin();
+  refreshChatLoginUI();
+}
+
+function refreshChatLoginUI(){
+  const loginBox = document.getElementById('chatLoginBox');
+  const postBox  = document.getElementById('chatPostBox');
+  const info     = document.getElementById('chatLoggedin');
+  const l = getChatLogin();
+  if(isChatLoggedIn()){
+    if(loginBox) loginBox.style.display = 'none';
+    if(postBox)  postBox.style.display = 'flex';
+    if(info) info.textContent = '✅ ' + (l.name || '匿名') + ' として参加中';
+  } else {
+    if(loginBox) loginBox.style.display = 'block';
+    if(postBox)  postBox.style.display = 'none';
+  }
+}
+
+/* ===== 投稿 ===== */
+function submitChat(){
+  if(!isChatLoggedIn()){
+    alert('伝言を書き込むには、引き継ぎコードでの参加が必要です。');
+    return;
+  }
+  const login  = getChatLogin();
+  const msgEl  = document.getElementById('chatMessage');
+  const btn    = document.getElementById('chatSendBtn');
+  let message = (msgEl.value || '').trim().slice(0, 140);
+  if(!message){ return; }
+
+  const now = Date.now();
+  if(now - _chatLastSent < CHAT_MIN_INTERVAL){
+    alert('連続投稿はできません。少し待ってから送信してください。');
+    return;
+  }
+  const low = message.toLowerCase();
+  if(CHAT_NG.some(function(w){ return low.indexOf(w) >= 0; })){
+    alert('不適切な表現が含まれている可能性があります。内容をご確認ください。');
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = '送信中…';
+  _chatLastSent = now;
+  try{
+    if(ARTICLES_URL && ARTICLES_URL.indexOf('http') === 0){
+      fetch(ARTICLES_URL, {
+        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ type:'chat', message:message, code:login.code, name:login.name })
+      }).catch(function(){});
+    }
+  }catch(e){}
+  appendLocalChat(login.name || '匿名', message);
+  msgEl.value = '';
+  setTimeout(function(){
+    btn.disabled = false; btn.textContent = '送信';
+    loadChat();
+  }, 800);
+}
+
+function appendLocalChat(name, message){
+  const wrap = document.getElementById('chatMessages');
+  if(!wrap) return;
+  const empty = wrap.querySelector('.empty');
+  if(empty) empty.remove();
+  const div = document.createElement('div');
+  div.className = 'msg mine';
+  div.innerHTML = '<div class="msg-head"><span class="msg-name">'
+    + escapeHtmlA(name) + '</span><span class="msg-time">送信中…</span></div>'
+    + '<div class="msg-body">' + escapeHtmlA(message) + '</div>';
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+/* ===== 読み込み・描画 ===== */
+async function loadChat(){
+  if(!ARTICLES_URL || ARTICLES_URL.indexOf('http') !== 0) return;
+  try{
+    const res = await fetch(ARTICLES_URL + '?type=chat&_=' + Date.now(), { method:'GET' });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    setStatus(true);
+    renderChat((data && data.chat) ? data.chat : []);
+  }catch(e){
+    setStatus(false);
+    console.warn('chat load error:', e);
+  }
+}
+
+function renderChat(list){
+  const wrap = document.getElementById('chatMessages');
+  if(!wrap) return;
+  if(!Array.isArray(list) || !list.length){
+    wrap.innerHTML = '<div class="empty">まだ伝言はありません。<br>最初のひとことを書き残してみませんか？</div>';
+    _chatLastCount = 0;
+    return;
+  }
+  const me = chatSelfId();
+  const wasAtBottom = (wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight) < 40;
+  wrap.innerHTML = list.map(function(m){
+    const mine = me && m.code && m.code === me;
+    const name = escapeHtmlA(m.name || '匿名');
+    const time = escapeHtmlA(m.time || '');
+    const body = escapeHtmlA(m.message || '');
+    const id = escapeHtmlA(String(m.id || ''));
+    return '<div class="msg' + (mine?' mine':'') + '">'
+      + '<div class="msg-head">'
+      + '<span class="msg-name">' + name + '</span>'
+      + (time ? '<span class="msg-time">' + time + '</span>' : '')
+      + '<button type="button" class="msg-report" onclick="reportChat(\'' + id + '\')">⚠ 通報</button>'
+      + '</div>'
+      + '<div class="msg-body">' + body + '</div>'
+      + '</div>';
+  }).join('');
+  if(wasAtBottom || list.length !== _chatLastCount){
+    wrap.scrollTop = wrap.scrollHeight;
+  }
+  _chatLastCount = list.length;
+}
+
+function reportChat(id){
+  if(!id) return;
+  if(!confirm('この伝言を運営に通報しますか？')) return;
+  try{
+    if(ARTICLES_URL && ARTICLES_URL.indexOf('http') === 0){
+      fetch(ARTICLES_URL, {
+        method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain' },
+        body: JSON.stringify({ type:'chat_report', id:id, code:chatSelfId() })
+      }).catch(function(){});
+    }
+  }catch(e){}
+  alert('通報しました。ご協力ありがとうございます。');
+}
+
+/* ===== 接続ステータス表示 ===== */
+function setStatus(ok){
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  if(!dot || !txt) return;
+  if(ok){ dot.classList.remove('off'); txt.textContent = '伝言板に接続中・自動更新しています'; }
+  else  { dot.classList.add('off');   txt.textContent = '接続できません。通信環境をご確認ください'; }
+}
+
+/* ===== ポーリング（画面を見ている間だけ） ===== */
+function startChatPolling(){
+  if(_chatPollTimer) return;
+  loadChat();
+  _chatPollTimer = setInterval(loadChat, CHAT_POLL_MS);
+}
+function stopChatPolling(){
+  if(_chatPollTimer){ clearInterval(_chatPollTimer); _chatPollTimer = null; }
+}
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'hidden') stopChatPolling();
+  else startChatPolling();
+});
+
+/* ===== 起動 ===== */
+(function init(){
+  refreshChatLoginUI();
+  loadChat();
+  startChatPolling();
+})();
+</script>
+</body>
+</html>
