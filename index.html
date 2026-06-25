@@ -138,11 +138,107 @@
 
   .note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.7;}
 
+  /* 緊急対応マニュアルへの導線 */
+  .manual-cta{
+    display:flex;align-items:center;gap:13px;
+    margin:14px 0 4px;padding:15px 16px;
+    background:linear-gradient(135deg, rgba(255,45,45,0.12), rgba(255,140,0,0.10));
+    border:1px solid var(--border-red);border-radius:12px;
+    text-decoration:none;color:var(--text);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .manual-cta:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(255,45,45,0.18);}
+  .manual-cta:active{transform:translateY(0);opacity:.92;}
+  .manual-cta .ic{
+    flex-shrink:0;width:40px;height:40px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;font-size:21px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    box-shadow:0 4px 12px rgba(255,45,45,0.3);
+  }
+  .manual-cta .tx{flex:1;min-width:0;}
+  .manual-cta .tx .t{font-size:14.5px;font-weight:800;letter-spacing:.01em;}
+  .manual-cta .tx .d{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:1px;}
+  .manual-cta .arw{flex-shrink:0;color:var(--accent);font-size:18px;font-weight:700;}
+
   footer.foot{
     margin-top:26px;padding-top:16px;border-top:1px solid var(--border);
     font-size:11px;color:var(--muted);line-height:1.8;text-align:center;
   }
-  footer.foot a{color:var(--blue);text-decoration:none;}
+  footer.foot a{color:var(--blue);text-decoration:none;cursor:pointer;}
+  footer.foot .sep{margin:0 8px;color:var(--border);}
+
+  /* プライバシーポリシー モーダル */
+  .pp-overlay{
+    position:fixed;inset:0;z-index:50;display:none;
+    background:rgba(2,5,10,0.72);backdrop-filter:blur(3px);
+    align-items:flex-end;justify-content:center;
+  }
+  .pp-overlay.show{display:flex;}
+  @media (min-width:560px){ .pp-overlay{align-items:center;} }
+  .pp-modal{
+    width:100%;max-width:620px;max-height:86vh;display:flex;flex-direction:column;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:16px 16px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,0.5);
+  }
+  @media (min-width:560px){ .pp-modal{border-radius:16px;} }
+  .pp-head{
+    display:flex;align-items:center;gap:10px;padding:15px 18px;
+    border-bottom:1px solid var(--border);
+  }
+  .pp-head h2{margin:0;font-size:15px;font-weight:800;}
+  .pp-close{
+    margin-left:auto;background:none;border:1px solid var(--border);
+    color:var(--muted);width:30px;height:30px;border-radius:8px;
+    font-size:17px;cursor:pointer;line-height:1;
+  }
+  .pp-close:hover{color:var(--text);border-color:var(--blue);}
+  .pp-body{padding:16px 18px 22px;overflow-y:auto;}
+  .pp-body::-webkit-scrollbar{width:7px;}
+  .pp-body::-webkit-scrollbar-thumb{background:rgba(0,180,255,0.22);border-radius:4px;}
+  .pp-intro{font-size:12.5px;color:var(--text);line-height:1.85;margin-bottom:14px;}
+  .pp-sec{margin-bottom:15px;}
+  .pp-sec h3{font-size:13px;font-weight:700;color:var(--blue);margin:0 0 5px;}
+  .pp-sec p{font-size:12.5px;color:var(--text);line-height:1.8;margin:0;white-space:pre-wrap;}
+  .pp-updated{font-size:11px;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px solid var(--border);}
+  .pp-loading{font-size:12.5px;color:var(--muted);text-align:center;padding:24px 8px;}
+
+  /* @通知メール登録カード */
+  .notify-card{
+    margin-top:16px;background:var(--surface);border:1px solid var(--border);
+    border-radius:12px;padding:16px;box-shadow:var(--glow-blue);
+  }
+  .notify-head{display:flex;align-items:center;gap:9px;margin-bottom:4px;}
+  .notify-head .ic{
+    flex-shrink:0;width:32px;height:32px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;font-size:17px;
+    background:linear-gradient(135deg,var(--blue),#0066d6);
+  }
+  .notify-head .t{font-size:14.5px;font-weight:800;}
+  .notify-desc{font-size:12px;color:var(--muted);line-height:1.75;margin:8px 0 12px;}
+  .notify-desc b{color:var(--blue);}
+  .notify-row{display:flex;flex-direction:column;gap:8px;}
+  .notify-actions{display:flex;gap:8px;margin-top:2px;}
+  .notify-actions .btn-primary{flex:1;}
+  .btn-ghost{
+    border:1px solid var(--border);border-radius:8px;background:transparent;
+    color:var(--muted);font-weight:700;font-size:13px;cursor:pointer;padding:11px 14px;
+  }
+  .btn-ghost:hover{color:var(--text);border-color:var(--blue);}
+  .notify-status{
+    font-size:12px;line-height:1.7;margin-top:10px;padding:10px 12px;border-radius:9px;
+    background:var(--surface2);border:1px solid var(--border);display:none;
+  }
+  .notify-status.show{display:block;}
+  .notify-status.ok{color:var(--ok);border-color:rgba(47,208,122,0.35);}
+  .notify-status.err{color:var(--accent);border-color:var(--border-red);}
+  .notify-status.info{color:var(--text);}
+  .notify-help{font-size:11px;color:var(--muted);margin-top:9px;line-height:1.7;}
+  .notify-registered{
+    font-size:12.5px;color:var(--ok);font-weight:700;margin-bottom:10px;
+    padding:10px 12px;border-radius:9px;background:rgba(47,208,122,0.08);
+    border:1px solid rgba(47,208,122,0.3);display:none;
+  }
+  .notify-registered.show{display:block;}
 </style>
 </head>
 <body>
@@ -169,6 +265,15 @@
     閲覧は誰でもできます。書き込みには<b>引き継ぎコード</b>での参加が必要です。
     <span class="hint">例：「○○、無事です。△△の避難所にいます」「電話つながりにくいのでここに連絡ください」</span>
   </div>
+
+  <a class="manual-cta" href="https://mkms0822-ops.github.io/kinkyuutaioumanyuaru/" target="_blank" rel="noopener">
+    <span class="ic">🚨</span>
+    <span class="tx">
+      <span class="t">緊急対応マニュアルを開く</span>
+      <span class="d">地震・災害時の行動、避難の手順などをまとめています。</span>
+    </span>
+    <span class="arw">›</span>
+  </a>
 
   <div class="board">
     <div class="board-head">
@@ -202,11 +307,63 @@
     <div class="note">※ 伝言は自動で更新されます。不適切な投稿は「⚠ 通報」でお知らせください。緊急の通報・救助要請は <b>119番／110番</b> へ。</div>
   </div>
 
+  <!-- @通知メール登録 -->
+  <div class="notify-card">
+    <div class="notify-head">
+      <span class="ic">📧</span>
+      <span class="t">@通知メールを登録（緊急連絡）</span>
+    </div>
+    <div class="notify-desc">
+      メールアドレスを登録しておくと、伝言板で <b>「@あなたの表示名」</b> 宛ての伝言が書き込まれたとき、メールでお知らせが届きます。<br>
+      災害時、伝言板を開いていなくても連絡に気づけます。
+    </div>
+
+    <div class="notify-registered" id="notifyRegistered"></div>
+
+    <div class="notify-row" id="notifyForm">
+      <input type="text" id="notifyCode" class="field" maxlength="13" placeholder="引き継ぎコード（例：DWA-AB12-CD34）" style="text-transform:uppercase;">
+      <input type="email" id="notifyEmail" class="field" maxlength="200" placeholder="通知を受け取るメールアドレス" autocomplete="email">
+      <div class="notify-actions">
+        <button type="button" id="notifyBtn" class="btn-primary" onclick="notifyRegister()">通知を登録する</button>
+        <button type="button" class="btn-ghost" onclick="notifyCheck()">登録状況を確認</button>
+      </div>
+    </div>
+
+    <div class="notify-actions" id="notifyUnregWrap" style="display:none;margin-top:10px;">
+      <button type="button" class="btn-ghost" style="flex:1;" onclick="notifyUnregister()">通知を解除する</button>
+    </div>
+
+    <div class="notify-status" id="notifyStatus"></div>
+
+    <div class="notify-help">
+      ※ 表示名は伝言板に「参加」したとき決めた名前です。先にコードで参加して表示名を作ってから登録してください。<br>
+      ※ 同じ表示名は1人だけ登録できます（早い者勝ち）。すでに使われている場合は別の表示名にしてください。<br>
+      ※ メールアドレスは通知の送信にのみ使用します。
+    </div>
+  </div>
+
   <footer class="foot">
     防災情報センター 災害用伝言板<br>
     <a href="https://bousai0111.info/" target="_blank" rel="noopener">▶ 防災情報センター本体へ</a>
+    <span class="sep">|</span>
+    <a onclick="openPrivacy()">プライバシーポリシー</a>
+    <span class="sep">|</span>
+    <a href="https://mkms0822-ops.github.io/kinkyuutaioumanyuaru/" target="_blank" rel="noopener">緊急対応マニュアル</a>
   </footer>
 
+</div>
+
+<!-- プライバシーポリシー モーダル -->
+<div class="pp-overlay" id="ppOverlay" onclick="if(event.target===this)closePrivacy()">
+  <div class="pp-modal" role="dialog" aria-modal="true" aria-labelledby="ppTitle">
+    <div class="pp-head">
+      <h2 id="ppTitle">🔒 プライバシーポリシー</h2>
+      <button type="button" class="pp-close" onclick="closePrivacy()" aria-label="閉じる">×</button>
+    </div>
+    <div class="pp-body" id="ppBody">
+      <div class="pp-loading">読み込み中…</div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -455,11 +612,236 @@ document.addEventListener('visibilitychange', function(){
   else startChatPolling();
 });
 
+/* ===== プライバシーポリシー（本体と同じGASから取得） ===== */
+let _ppLoaded = false;
+
+function openPrivacy(){
+  const ov = document.getElementById('ppOverlay');
+  if(!ov) return;
+  ov.classList.add('show');
+  document.body.style.overflow = 'hidden';
+  if(!_ppLoaded) loadPrivacy();
+}
+
+function closePrivacy(){
+  const ov = document.getElementById('ppOverlay');
+  if(!ov) return;
+  ov.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') closePrivacy();
+});
+
+async function loadPrivacy(){
+  const body = document.getElementById('ppBody');
+  if(!body) return;
+  if(!ARTICLES_URL || ARTICLES_URL.indexOf('http') !== 0){
+    body.innerHTML = '<div class="pp-loading">プライバシーポリシーを読み込めませんでした。</div>';
+    return;
+  }
+  try{
+    const res = await fetch(ARTICLES_URL + '?_=' + Date.now(), { method:'GET' });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    renderPrivacy((data && data.privacy) ? data.privacy : [], (data && data.privacyUpdated) ? data.privacyUpdated : '');
+    _ppLoaded = true;
+  }catch(e){
+    body.innerHTML = '<div class="pp-loading">通信エラーで読み込めませんでした。<br>時間をおいてお試しください。</div>';
+  }
+}
+
+function renderPrivacy(sections, updated){
+  const body = document.getElementById('ppBody');
+  if(!body) return;
+  if(!Array.isArray(sections) || !sections.length){
+    body.innerHTML = '<div class="pp-loading">プライバシーポリシーがまだ登録されていません。</div>';
+    return;
+  }
+  let html = '';
+  sections.forEach(function(s, i){
+    const heading = escapeHtmlA(s.heading || '');
+    const text = escapeHtmlA(s.body || '');
+    // 見出しが空の最初の項目は導入文として扱う
+    if(!heading && i === 0){
+      html += '<div class="pp-intro">' + text + '</div>';
+    } else {
+      html += '<div class="pp-sec">'
+        + (heading ? '<h3>' + heading + '</h3>' : '')
+        + '<p>' + text + '</p>'
+        + '</div>';
+    }
+  });
+  if(updated){
+    html += '<div class="pp-updated">' + escapeHtmlA(updated) + '</div>';
+  }
+  body.innerHTML = html;
+}
+
+/* ===== @通知メール 登録／確認／解除 ===== */
+function _notifyShowStatus(msg, kind){
+  const el = document.getElementById('notifyStatus');
+  if(!el) return;
+  el.className = 'notify-status show ' + (kind || 'info');
+  el.textContent = msg;
+}
+function _notifyClearStatus(){
+  const el = document.getElementById('notifyStatus');
+  if(el){ el.className = 'notify-status'; el.textContent = ''; }
+}
+function _notifyCode(){
+  const el = document.getElementById('notifyCode');
+  return (el ? el.value : '').trim().toUpperCase();
+}
+function _notifyValidCode(code){
+  return /^DWA-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code);
+}
+async function _notifyFetch(params){
+  let url = ARTICLES_URL + '?type=notify';
+  Object.keys(params).forEach(function(k){
+    url += '&' + k + '=' + encodeURIComponent(params[k]);
+  });
+  url += '&_=' + Date.now();
+  const res = await fetch(url, { method:'GET' });
+  return await res.json();
+}
+function _notifyPassword(){
+  try { return localStorage.getItem('stamp_pw') || ''; } catch(e){ return ''; }
+}
+
+function _notifySetRegistered(name, email){
+  const banner = document.getElementById('notifyRegistered');
+  const unreg = document.getElementById('notifyUnregWrap');
+  if(banner){
+    banner.classList.add('show');
+    banner.textContent = '✅ 「@' + name + '」宛ての伝言を ' + (email || '登録済みのアドレス') + ' に通知します。';
+  }
+  if(unreg) unreg.style.display = 'flex';
+}
+function _notifyClearRegistered(){
+  const banner = document.getElementById('notifyRegistered');
+  const unreg = document.getElementById('notifyUnregWrap');
+  if(banner){ banner.classList.remove('show'); banner.textContent = ''; }
+  if(unreg) unreg.style.display = 'none';
+}
+
+async function notifyRegister(){
+  _notifyClearStatus();
+  const code = _notifyCode();
+  const emailEl = document.getElementById('notifyEmail');
+  const email = (emailEl ? emailEl.value : '').trim();
+  const btn = document.getElementById('notifyBtn');
+  if(!_notifyValidCode(code)){ _notifyShowStatus('引き継ぎコードの形式が違います（例：DWA-AB12-CD34）', 'err'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ _notifyShowStatus('メールアドレスの形式をご確認ください。', 'err'); return; }
+  if(!ARTICLES_URL || ARTICLES_URL.indexOf('http') !== 0){ _notifyShowStatus('サーバー未設定のため登録できません。', 'err'); return; }
+
+  if(btn){ btn.disabled = true; btn.textContent = '登録中…'; }
+  try{
+    let d = await _notifyFetch({ action:'register', code:code, email:email, password:_notifyPassword() });
+    // パスワード保護コードなら入力を促してリトライ
+    let tries = 0;
+    while(d && d.error === 'password required' && tries < 3){
+      const pw = prompt('このコードにはパスワードが設定されています。\n登録するにはパスワードを入力してください。');
+      if(pw === null){ _notifyShowStatus('登録を中止しました。', 'info'); break; }
+      d = await _notifyFetch({ action:'register', code:code, email:email, password:pw });
+      tries++;
+    }
+    if(d && d.ok){
+      try { localStorage.setItem('notify_code', code); } catch(e){}
+      _notifySetRegistered(d.name || '', d.email || email);
+      _notifyShowStatus('登録しました。確認メールをお送りしました（届かない場合は迷惑メールもご確認ください）。', 'ok');
+    } else if(d && d.error === 'name taken'){
+      _notifyShowStatus('この表示名「' + (d.name || '') + '」は、すでに別の方が通知登録しています。別の表示名でご利用ください（伝言板の「参加」から表示名を変更できます）。', 'err');
+    } else if(d && d.needName){
+      _notifyShowStatus('このコードはまだ表示名が未登録です。先に上の「伝言板に参加する」で表示名を決めてから登録してください。', 'err');
+    } else if(d && d.error === 'unauthorized'){
+      _notifyShowStatus('このコードはスタンプ台帳に見つかりませんでした。', 'err');
+    } else if(d && d.error === 'bad email'){
+      _notifyShowStatus('メールアドレスの形式をご確認ください。', 'err');
+    } else {
+      _notifyShowStatus('登録できませんでした。時間をおいてお試しください。', 'err');
+    }
+  }catch(e){
+    _notifyShowStatus('通信エラーで登録できませんでした。', 'err');
+  }
+  if(btn){ btn.disabled = false; btn.textContent = '通知を登録する'; }
+}
+
+async function notifyCheck(){
+  _notifyClearStatus();
+  _notifyClearRegistered();
+  const code = _notifyCode();
+  if(!_notifyValidCode(code)){ _notifyShowStatus('まず引き継ぎコードを入力してください。', 'err'); return; }
+  if(!ARTICLES_URL || ARTICLES_URL.indexOf('http') !== 0){ _notifyShowStatus('サーバー未設定のため確認できません。', 'err'); return; }
+  try{
+    let d = await _notifyFetch({ action:'status', code:code, password:_notifyPassword() });
+    let tries = 0;
+    while(d && d.error === 'password required' && tries < 3){
+      const pw = prompt('このコードにはパスワードが設定されています。\nパスワードを入力してください。');
+      if(pw === null) return;
+      d = await _notifyFetch({ action:'status', code:code, password:pw });
+      tries++;
+    }
+    if(d && d.ok && d.registered){
+      _notifySetRegistered(d.name || '', d.email || '');
+      _notifyShowStatus('現在、通知が有効です。', 'ok');
+    } else if(d && d.ok && !d.registered){
+      _notifyShowStatus('このコードはまだ通知未登録です。メールを入力して「通知を登録する」を押してください。', 'info');
+    } else if(d && d.needName){
+      _notifyShowStatus('このコードはまだ表示名が未登録です。先に伝言板に「参加」してください。', 'err');
+    } else if(d && d.error === 'unauthorized'){
+      _notifyShowStatus('このコードはスタンプ台帳に見つかりませんでした。', 'err');
+    } else {
+      _notifyShowStatus('確認できませんでした。時間をおいてお試しください。', 'err');
+    }
+  }catch(e){
+    _notifyShowStatus('通信エラーで確認できませんでした。', 'err');
+  }
+}
+
+async function notifyUnregister(){
+  _notifyClearStatus();
+  const code = _notifyCode();
+  if(!_notifyValidCode(code)){ _notifyShowStatus('引き継ぎコードを入力してください。', 'err'); return; }
+  if(!confirm('@通知メールを解除します。よろしいですか？')) return;
+  try{
+    let d = await _notifyFetch({ action:'unregister', code:code, password:_notifyPassword() });
+    let tries = 0;
+    while(d && d.error === 'password required' && tries < 3){
+      const pw = prompt('このコードにはパスワードが設定されています。\nパスワードを入力してください。');
+      if(pw === null) return;
+      d = await _notifyFetch({ action:'unregister', code:code, password:pw });
+      tries++;
+    }
+    if(d && d.ok){
+      _notifyClearRegistered();
+      _notifyShowStatus('通知を解除しました。', 'info');
+    } else {
+      _notifyShowStatus('解除できませんでした。時間をおいてお試しください。', 'err');
+    }
+  }catch(e){
+    _notifyShowStatus('通信エラーで解除できませんでした。', 'err');
+  }
+}
+
+/* ログイン中なら通知フォームのコード欄を自動で埋める */
+function notifyPrefill(){
+  const codeEl = document.getElementById('notifyCode');
+  if(!codeEl) return;
+  let code = '';
+  const l = getChatLogin();
+  if(l && l.code) code = l.code;
+  if(!code){ try { code = localStorage.getItem('notify_code') || ''; } catch(e){} }
+  if(code && !codeEl.value) codeEl.value = code;
+}
+
 /* ===== 起動 ===== */
 (function init(){
   refreshChatLoginUI();
   loadChat();
   startChatPolling();
+  notifyPrefill();
 })();
 </script>
 </body>
