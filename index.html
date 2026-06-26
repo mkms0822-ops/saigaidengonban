@@ -1099,6 +1099,19 @@ function fsFocusBubble(m, bubbleEl){
   const focused = document.createElement('div');
   focused.className = 'bubble focused' + (meta.mine?' mine':'') + (meta.mention?' mention':'');
   focused.id = 'fsFocusedBubble';
+  // 拡大時は必ず不透明にする（名前由来の半透明変数を打ち消し、不透明色をインラインで直接指定）
+  try {
+    const lightMode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+    let solid;
+    if(meta.mine)      solid = lightMode ? '#e6f4ff' : '#0a2436';
+    else if(meta.mention) solid = lightMode ? '#fff1e0' : '#2a1c0a';
+    else               solid = lightMode ? '#ffffff' : '#0b1626';
+    focused.style.removeProperty('--bub-bg');
+    focused.style.setProperty('background', solid, 'important');
+    focused.style.setProperty('background-color', solid, 'important');
+    focused.style.setProperty('opacity', '1', 'important');
+    focused.style.setProperty('backdrop-filter', 'none', 'important');
+  } catch(e){}
   const tag = meta.mine ? '<span class="b-tag">あなた</span>'
             : meta.mention ? '<span class="b-tag">あなた宛て</span>' : '';
   const id = escapeHtmlA(String(m.id || ''));
