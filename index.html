@@ -1271,6 +1271,7 @@ function clearCompose(){
 let _recognition = null;
 let _voiceListening = false;
 let _voiceBaseBody = '';   // 認識開始時点の本文（そこに認識結果を足す）
+let _voiceFinalCount = 0;  // すでに本文へ取り込んだ確定結果の数（重複防止）
 
 function _speechSupported(){
   return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
@@ -1320,6 +1321,7 @@ function startVoiceInput(){
   // 認識開始時点の本文を基準にして、そこに足していく
   _composeSyncFromInput();
   _voiceBaseBody = _compose.body || '';
+  _voiceFinalCount = 0;   // 確定カウントをリセット
 
   _recognition.onstart = function(){
     _voiceListening = true;
@@ -1345,15 +1347,23 @@ function startVoiceInput(){
     }, 200);
   };
   _recognition.onresult = function(ev){
-    let finalText = '';
+    // ev.results は「確定済み＋未確定」の全体スナップショット。
+    // 確定（isFinal）になった結果は一度だけ本文へ足す。
+    // 未確定（interim）は毎回その時点の内容で“表示だけ”差し替える。
     let interim = '';
-    for(let i = ev.resultIndex; i < ev.results.length; i++){
+    for(let i = 0; i < ev.results.length; i++){
       const r = ev.results[i];
-      if(r.isFinal){ finalText += r[0].transcript; }
-      else { interim += r[0].transcript; }
+      if(r.isFinal){
+        // まだ取り込んでいない確定結果だけを足す（重複防止）
+        if(i >= _voiceFinalCount){
+          _voiceBaseBody += r[0].transcript;
+          _voiceFinalCount = i + 1;
+        }
+      } else {
+        interim += r[0].transcript;
+      }
     }
-    // 認識開始時の本文 ＋ 確定分 ＋ 途中経過 を本文として反映
-    if(finalText){ _voiceBaseBody = (_voiceBaseBody + finalText); }
+    // 確定分（_voiceBaseBody）＋ 今の途中経過（interim）を表示
     _compose.body = (_voiceBaseBody + interim).slice(0, 140);
     _composeRender();
   };
