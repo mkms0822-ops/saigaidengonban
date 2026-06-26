@@ -246,14 +246,25 @@
   .bubble.focused{
     position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(1);
     max-width:min(440px, 86vw);z-index:20;animation:none;cursor:default;
-    box-shadow:0 18px 50px rgba(0,0,0,0.5);
+    background:var(--surface) !important;   /* 拡大時は不透明にして必ず読める */
+    box-shadow:0 18px 50px rgba(0,0,0,0.6);
+  }
+  @media (prefers-color-scheme: light){ .bubble.focused{background:#ffffff !important;} }
+  /* 自分／自分宛ては不透明な色付き背景で強調（透けない） */
+  .bubble.focused.mine{background:#0a2436 !important;}
+  .bubble.focused.mention{background:#2a1c0a !important;}
+  @media (prefers-color-scheme: light){
+    .bubble.focused.mine{background:#e6f4ff !important;}
+    .bubble.focused.mention{background:#fff1e0 !important;}
   }
   .bubble.focused .b-body{-webkit-line-clamp:unset;font-size:16px;line-height:1.7;}
   .bubble.focused .b-name{font-size:13px;}
   .bubble.focused .b-time{font-size:11px;margin-top:6px;}
   .fs-backdrop{
-    position:absolute;inset:0;background:rgba(2,5,10,0.55);z-index:15;display:none;
+    position:absolute;inset:0;background:rgba(2,8,5,0.78);z-index:15;display:none;
+    backdrop-filter:blur(2px);
   }
+  @media (prefers-color-scheme: light){ .fs-backdrop{background:rgba(20,40,30,0.5);} }
   .fs-backdrop.show{display:block;}
 
   /* 全画面の一覧ビュー */
