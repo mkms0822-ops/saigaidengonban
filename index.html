@@ -300,6 +300,34 @@
   .btn-primary:disabled{opacity:.5;cursor:default;}
   .login-help{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;}
 
+  /* はじめての方：コード発行 */
+  .issue-divider{display:flex;align-items:center;gap:10px;margin:16px 0 12px;color:var(--muted);font-size:11px;font-weight:700;}
+  .issue-divider::before,.issue-divider::after{content:"";flex:1;height:1px;background:var(--border);}
+  .issue-box{background:rgba(0,180,255,0.05);border:1px solid var(--border);border-radius:12px;padding:13px;}
+  .issue-title{font-size:13.5px;font-weight:800;color:var(--blue);margin-bottom:5px;}
+  .issue-desc{font-size:11.5px;color:var(--muted);line-height:1.65;margin-bottom:9px;}
+  .btn-issue{
+    width:100%;margin-top:9px;cursor:pointer;border:none;border-radius:9px;
+    padding:12px;font-size:13.5px;font-weight:800;color:#fff;
+    background:linear-gradient(135deg,var(--ok),#1fa862);
+  }
+  .btn-issue:hover{filter:brightness(1.08);}
+  .btn-issue:disabled{opacity:.6;}
+  .issue-notes{margin:11px 0 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:5px;}
+  .issue-notes li{position:relative;padding-left:18px;font-size:11px;color:var(--muted);line-height:1.6;}
+  .issue-notes li::before{content:"•";position:absolute;left:5px;top:0;color:var(--ok);font-weight:800;}
+  .issue-notes li b{color:var(--text);}
+  .issued-banner{
+    margin-top:10px;padding:11px 13px;border-radius:9px;font-size:12px;line-height:1.7;
+    background:rgba(47,208,122,0.10);border:1px solid rgba(47,208,122,0.35);color:var(--text);display:none;
+  }
+  .issued-banner.show{display:block;}
+  .issued-banner .ib-code{font-size:16px;font-weight:800;color:var(--ok);letter-spacing:.05em;margin:3px 0;display:block;}
+  .issued-banner .ib-copy{
+    margin-top:6px;cursor:pointer;background:transparent;border:1px solid var(--ok);color:var(--ok);
+    border-radius:7px;padding:4px 12px;font-size:11px;font-weight:700;
+  }
+
   /* 投稿フォーム */
   .post-box{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
   .loggedin{font-size:12px;color:var(--ok);font-weight:700;}
@@ -374,6 +402,66 @@
     margin-left:auto;cursor:pointer;background:transparent;border:none;
     color:var(--accent);font-size:12px;font-weight:700;padding:2px 6px;
   }
+
+  /* ===== 作成／設定 2画面タブ ===== */
+  .pane-tabs{display:flex;gap:0;border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:4px;}
+  .pane-tab{
+    flex:1;background:transparent;border:none;cursor:pointer;
+    padding:11px 8px;font-size:13px;font-weight:800;color:var(--muted);
+  }
+  .pane-tab.active{background:var(--blue);color:#fff;}
+  .pane{display:flex;flex-direction:column;gap:14px;}
+
+  .create-block{display:flex;flex-direction:column;gap:8px;}
+  .cb-label{font-size:12px;font-weight:800;color:var(--text);}
+  .cb-label .cb-sub{font-size:10.5px;font-weight:600;color:var(--muted);margin-left:4px;}
+  .clear-msg-btn{
+    align-self:flex-start;background:none;border:none;color:var(--muted);
+    font-size:11px;cursor:pointer;text-decoration:underline;padding:0;
+  }
+
+  /* 定型文ボタン（作成画面） */
+  .phrase-btns{display:flex;gap:7px;flex-wrap:wrap;}
+  .phrase-btn{
+    display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    border:1.5px solid var(--ok);border-radius:18px;
+    padding:7px 13px;font-size:12.5px;font-weight:700;
+    background:rgba(47,208,122,0.08);color:var(--text);text-align:left;
+    max-width:100%;
+  }
+  .phrase-btn:hover{background:rgba(47,208,122,0.16);}
+  .phrase-btn .pb-tag{
+    font-size:9.5px;font-weight:800;color:#fff;border-radius:9px;padding:1px 7px;flex-shrink:0;
+  }
+  .phrase-btn .pb-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+  .phrase-empty{font-size:11px;color:var(--muted2);}
+
+  /* 選択中の宛先チップ（作成画面の宛先ボタンが選択されたら色が変わる） */
+  .quick-btn.selected{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .quick-btn.selected .qb-at{color:#fff;}
+  .quick-btn.selected .qb-memo{color:rgba(255,255,255,0.85);}
+
+  /* ===== 設定画面 ===== */
+  .set-section{
+    background:var(--surface2);border:1px solid var(--border);
+    border-radius:12px;padding:13px;display:flex;flex-direction:column;gap:9px;
+  }
+  .set-title{font-size:13.5px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:6px;}
+  .set-count{font-size:11px;font-weight:700;color:var(--muted);}
+  .set-desc{font-size:11.5px;color:var(--muted);line-height:1.6;}
+  .phrase-edit-form{display:flex;flex-direction:column;gap:8px;}
+  .phrase-edit-form .field{width:100%;}
+  .phrase-edit-form .btn-primary{align-self:flex-end;padding:9px 18px;}
+  .phrase-tag-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .phrase-tag-label{font-size:11px;color:var(--muted);font-weight:600;margin-right:2px;}
+  .ptag-pick{
+    cursor:pointer;border:1.5px solid var(--border);border-radius:14px;
+    padding:4px 11px;font-size:11.5px;font-weight:700;color:var(--muted);background:transparent;
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .ptag-pick.active{color:#fff;}
+  .ptag-pick .pp-dot{width:8px;height:8px;border-radius:50%;}
+  .quick-item .qi-phrasetag{font-size:9.5px;font-weight:800;color:#fff;border-radius:9px;padding:1px 7px;}
 
   /* 絞り込み・並べ替え */
   .filter-bar{
@@ -565,27 +653,65 @@
       <input type="text" id="chatLoginName" class="field" maxlength="20" placeholder="表示名（初回のみ・空欄で匿名）" style="margin-top:8px;">
       <button type="button" id="chatLoginBtn" class="btn-primary" style="margin-top:10px;width:100%;" onclick="chatLogin()">参加する</button>
       <div class="login-help">コードは防災情報センターの「スタンプカード」から確認できます。</div>
+
+      <!-- 引き継ぎコードを持っていない人向け：その場で発行 -->
+      <div class="issue-divider"><span>はじめての方</span></div>
+      <div class="issue-box">
+        <div class="issue-title">🆕 引き継ぎコードを発行する</div>
+        <div class="issue-desc">コードをお持ちでない方は、ここで新しい引き継ぎコードを発行してそのまま参加できます。表示名を入れて発行してください。</div>
+        <input type="text" id="issueName" class="field" maxlength="20" placeholder="表示名（例：たろう）">
+        <button type="button" id="issueBtn" class="btn-issue" onclick="issueCode()">引き継ぎコードを発行して参加</button>
+        <ul class="issue-notes">
+          <li>発行と同時に<b>スタンプが1つ付きます</b>。</li>
+          <li>このコードは<b>防災情報センター本体でも使えます</b>（引き継ぎ・復元）。スタンプ記録も共通です。</li>
+          <li>コードは<b>大切に保管してください</b>。機種変更や復元のときに必要です。忘れると記録を引き継げないことがあります。</li>
+        </ul>
+      </div>
     </div>
 
     <!-- 参加後：投稿フォーム -->
     <div id="chatPostBox" class="post-box" style="display:none;">
       <div class="loggedin" id="chatLoggedin"></div>
 
-      <!-- 安否ステータスのワンタップ登録 -->
-      <div class="safety-row" id="safetyRow">
-        <div class="safety-label">いまの状況をワンタップで知らせる：</div>
-        <div class="safety-btns" id="safetyBtns"></div>
+      <!-- 作成／設定 タブ -->
+      <div class="pane-tabs">
+        <button type="button" id="paneTabCreate" class="pane-tab active" onclick="setPane('create')">✍️ 作成</button>
+        <button type="button" id="paneTabSettings" class="pane-tab" onclick="setPane('settings')">⚙️ 設定</button>
       </div>
 
-      <!-- 簡単指名（@お気に入り宛先） -->
-      <div class="quick-row" id="quickRow">
-        <div class="quick-head">
-          <span class="quick-label">よく送る相手（@指名）：</span>
-          <button type="button" class="quick-edit-btn" onclick="toggleQuickEdit()">⚙ 登録</button>
+      <!-- ===== 作成画面 ===== -->
+      <div class="pane" id="paneCreate">
+        <!-- 宛先を選ぶ -->
+        <div class="create-block">
+          <div class="cb-label">① 宛先を選ぶ <span class="cb-sub">（任意・複数可）</span></div>
+          <div class="quick-btns" id="quickBtns"></div>
         </div>
-        <div class="quick-btns" id="quickBtns"></div>
-        <div class="quick-edit" id="quickEdit" style="display:none;">
-          <div class="quick-edit-desc">よく連絡する相手を5人まで登録できます。相手の表示名（伝言板に参加済みの名前）と、自分用のメモ（例：お父さん）を入れて追加してください。</div>
+
+        <!-- 定型文・安否を選ぶ -->
+        <div class="create-block">
+          <div class="cb-label">② ひとことを選ぶ <span class="cb-sub">（タップで本文に入ります）</span></div>
+          <div class="phrase-btns" id="phraseBtns"></div>
+          <div class="safety-btns" id="safetyBtns"></div>
+        </div>
+
+        <!-- 本文・送信 -->
+        <div class="create-block">
+          <div class="cb-label">③ 内容を確認して送信</div>
+          <div class="send-row">
+            <input type="text" id="chatMessage" class="field" maxlength="140" placeholder="伝言を入力（140字まで）" onkeydown="if(event.key==='Enter')submitChat()">
+            <button type="button" id="chatSendBtn" class="btn-primary" onclick="submitChat()">送信</button>
+          </div>
+          <button type="button" class="clear-msg-btn" onclick="clearCompose()">入力をクリア</button>
+          <div class="offline-note" id="offlineNote" style="display:none;">📴 オフラインです。送信した伝言は下書きとして保存し、つながり次第そのまま自動で送信します。</div>
+        </div>
+      </div>
+
+      <!-- ===== 設定画面 ===== -->
+      <div class="pane" id="paneSettings" style="display:none;">
+        <!-- 宛先の登録 -->
+        <div class="set-section">
+          <div class="set-title">📇 よく送る相手（@指名）<span class="set-count" id="quickCount"></span></div>
+          <div class="set-desc">よく連絡する相手を5人まで登録できます。相手の表示名（伝言板に参加済みの名前）と、自分用のメモ（例：お父さん）を入れてください。</div>
           <div class="quick-edit-form">
             <input type="text" id="quickName" class="field" maxlength="20" placeholder="相手の表示名（@は不要）">
             <input type="text" id="quickMemo" class="field" maxlength="20" placeholder="メモ（任意・例：お父さん）">
@@ -594,14 +720,22 @@
           <div class="quick-edit-status" id="quickStatus"></div>
           <div class="quick-edit-list" id="quickEditList"></div>
         </div>
-      </div>
 
-      <div class="send-row">
-        <input type="text" id="chatMessage" class="field" maxlength="140" placeholder="伝言を入力（140字まで）" onkeydown="if(event.key==='Enter')submitChat()">
-        <button type="button" id="chatSendBtn" class="btn-primary" onclick="submitChat()">送信</button>
+        <!-- 定型文の登録 -->
+        <div class="set-section">
+          <div class="set-title">💬 よく送るひとこと（定型文）<span class="set-count" id="phraseCount"></span></div>
+          <div class="set-desc">よく送る定型文を5件まで登録できます。安否タグ（無事・避難中など）を付けると、一覧で色分け表示されます。</div>
+          <div class="phrase-edit-form">
+            <input type="text" id="phraseText" class="field" maxlength="100" placeholder="定型文（例：会社にいます。無事です）">
+            <div class="phrase-tag-row" id="phraseTagRow"></div>
+            <button type="button" class="btn-primary" onclick="phraseAdd()">追加</button>
+          </div>
+          <div class="quick-edit-status" id="phraseStatus"></div>
+          <div class="quick-edit-list" id="phraseEditList"></div>
+        </div>
+
+        <button type="button" class="logout-btn" onclick="chatLogout()">ログアウト</button>
       </div>
-      <div class="offline-note" id="offlineNote" style="display:none;">📴 オフラインです。送信した伝言は下書きとして保存し、つながり次第そのまま自動で送信します。</div>
-      <button type="button" class="logout-btn" onclick="chatLogout()">ログアウト</button>
     </div>
 
     <!-- 絞り込み・並べ替え -->
@@ -825,6 +959,105 @@ async function _fetchChatLogin(code, name, password){
   return await res.json();
 }
 
+/* ===== 引き継ぎコードをその場で発行して参加 =====
+   本体サイトと同じ生成方式（DWA-XXXX-XXXX／紛らわしい文字を除外）。
+   発行と同時にスタンプ台帳へ登録＋スタンプ1個付与（stamp action=add）。
+   localStorage の stamp_code に保存するので、本体サイトでも引き継ぎ・復元に使える。 */
+function _genStampCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const r4 = function(){ let r=''; for(let i=0;i<4;i++) r += chars[Math.floor(Math.random()*chars.length)]; return r; };
+  return 'DWA-' + r4() + '-' + r4();
+}
+
+async function issueCode(){
+  const nameEl = document.getElementById('issueName');
+  const btn = document.getElementById('issueBtn');
+  const name = (nameEl ? nameEl.value : '').trim().slice(0, 20);
+  if(!name){ alert('表示名を入力してください。'); if(nameEl) nameEl.focus(); return; }
+  if(!ARTICLES_URL || ARTICLES_URL.indexOf('http') !== 0){ alert('サーバー未設定のため発行できません。'); return; }
+
+  btn.disabled = true; btn.textContent = '発行中…';
+  try{
+    // 既存コードがあれば使い回す（二重発行を防ぐ）。無ければ新規生成。
+    let code = '';
+    try { code = localStorage.getItem('stamp_code') || ''; } catch(e){}
+    let isNew = false;
+    if(!/^DWA-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)){
+      code = _genStampCode();
+      isNew = true;
+    }
+
+    // スタンプを1つ付与（台帳に無ければ新規行を作成して1個付与。既存なら今日ぶんを加算）
+    // ※ handleStamp の add は、台帳に無いコードを渡すと新規登録＋1個付与する。
+    let stampOk = false;
+    try{
+      const url = ARTICLES_URL + '?type=stamp&action=add&code=' + encodeURIComponent(code)
+                + '&local=0&_=' + Date.now();
+      const res = await fetch(url, { method:'GET' });
+      const d = await res.json();
+      stampOk = !!(d && d.ok);
+    }catch(e){ stampOk = false; }
+
+    if(!stampOk){
+      alert('発行に失敗しました。電波状況をご確認のうえ、もう一度お試しください。');
+      btn.disabled = false; btn.textContent = '引き継ぎコードを発行して参加';
+      return;
+    }
+
+    // 本体サイトと共有するため stamp_code に保存
+    try { localStorage.setItem('stamp_code', code); } catch(e){}
+
+    // そのまま伝言板に参加（表示名を登録）
+    try{
+      await _fetchChatLogin(code, name, '');
+    }catch(e){}
+    setChatLogin({ code: code, name: name || '匿名' });
+
+    // 発行結果を表示（コードの控えを促す）
+    _showIssued(code);
+
+    // 参加状態に切り替え
+    setTimeout(function(){ refreshChatLoginUI(); loadChat(); }, 600);
+  }catch(e){
+    alert('通信エラーで発行できませんでした。時間をおいてお試しください。');
+  }
+  btn.disabled = false; btn.textContent = '引き継ぎコードを発行して参加';
+}
+
+function _showIssued(code){
+  // 参加ボックス内に控え用バナーを差し込む（refreshが走る前に一瞬見せる）
+  let banner = document.getElementById('issuedBanner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'issuedBanner';
+    banner.className = 'issued-banner';
+    const box = document.querySelector('.issue-box');
+    if(box) box.appendChild(banner);
+  }
+  banner.innerHTML = '✅ 引き継ぎコードを発行しました。スタンプも1つ付きました。<br>'
+    + '<span class="ib-code">' + escapeHtmlA(code) + '</span>'
+    + 'このコードは大切に保管してください（本体サイトの復元にも使えます）。'
+    + '<br><button type="button" class="ib-copy" onclick="_copyIssued(\'' + encodeURIComponent(code) + '\')">コードをコピー</button>';
+  banner.classList.add('show');
+  // 発行後に再ログインで使えるよう、参加フォームのコード欄にも入れておく
+  const codeEl = document.getElementById('chatLoginCode');
+  if(codeEl) codeEl.value = code;
+  try{ alert('引き継ぎコードを発行しました：\n\n' + code + '\n\nこのコードは大切に保管してください。\n本体サイトの「引き継ぎ・復元」でも使えます。'); }catch(e){}
+}
+
+function _copyIssued(encCode){
+  const code = decodeURIComponent(encCode);
+  try{
+    navigator.clipboard.writeText(code).then(function(){
+      alert('コードをコピーしました：\n' + code);
+    }, function(){
+      alert('コピーできませんでした。手元にお控えください：\n' + code);
+    });
+  }catch(e){
+    alert('コードを控えてください：\n' + code);
+  }
+}
+
 function chatLogout(){
   clearChatLogin();
   refreshChatLoginUI();
@@ -840,10 +1073,12 @@ function refreshChatLoginUI(){
     if(postBox)  postBox.style.display = 'flex';
     if(info) info.textContent = '✅ ' + (l.name || '匿名') + ' として参加中';
     loadQuickList();
+    loadPhraseList();
   } else {
     if(loginBox) loginBox.style.display = 'block';
     if(postBox)  postBox.style.display = 'none';
     _quickList = [];
+    _phraseList = [];
   }
 }
 
@@ -857,26 +1092,107 @@ function submitChat(){
   let message = (msgEl.value || '').trim().slice(0, 140);
   if(!message){ return; }
   const ok = sendChatMessage(message);
-  if(ok){ msgEl.value = ''; }
+  if(ok){
+    msgEl.value = '';
+    _compose = { mentions: [], tag: '', body: '' };
+    _refreshQuickSelected();
+  }
 }
 
 /* 安否ステータスのワンタップ送信 */
-function sendSafety(key){
-  if(!isChatLoggedIn()){
-    alert('安否を知らせるには、引き継ぎコードでの参加が必要です。');
-    return;
+/* ===== 作成画面の組み立て（宛先＋安否タグ＋本文を1つの入力欄にまとめる） =====
+   _compose = { mentions:[名前...], tag:'無事'等または'', body:'本文' }
+   これを「@A @B 【タグ】本文」の形に組み立てて入力欄へ反映する。 */
+let _compose = { mentions: [], tag: '', body: '' };
+
+function _composeRender(){
+  const el = document.getElementById('chatMessage');
+  if(!el) return;
+  let s = '';
+  if(_compose.mentions.length){ s += _compose.mentions.map(function(n){ return '@' + n; }).join(' ') + ' '; }
+  if(_compose.tag){ s += '【' + _compose.tag + '】'; }
+  s += _compose.body || '';
+  el.value = s.slice(0, 140);
+  _refreshQuickSelected();
+}
+
+/* 入力欄が手入力で変わったら、できる範囲で _compose に取り込む（本文部分） */
+function _composeSyncFromInput(){
+  const el = document.getElementById('chatMessage');
+  if(!el) return;
+  // 入力欄を素直に解析：先頭の @名前 群 → 【タグ】 → 本文
+  let v = el.value || '';
+  const mentions = [];
+  let m;
+  const reAt = /^\s*@([^\s@＠【\[]{1,20})\s+/;
+  while((m = v.match(reAt))){ mentions.push(m[1]); v = v.slice(m[0].length); }
+  let tag = '';
+  const reTag = /^[【\[]([^】\]]{1,6})[】\]]/;
+  const mt = v.match(reTag);
+  if(mt){ const t = mt[1].trim(); if(SAFETY_STATUSES.some(function(s){return s.tag===t;})){ tag = t; v = v.slice(mt[0].length); } }
+  _compose.mentions = mentions;
+  _compose.tag = tag;
+  _compose.body = v;
+  _refreshQuickSelected();
+}
+
+function clearCompose(){
+  _compose = { mentions: [], tag: '', body: '' };
+  _composeRender();
+  const el = document.getElementById('chatMessage');
+  if(el) el.focus();
+}
+
+/* 宛先トグル（作成画面の相手ボタン） */
+function quickToggle(encName){
+  const name = decodeURIComponent(encName);
+  _composeSyncFromInput();
+  const i = _compose.mentions.indexOf(name);
+  if(i >= 0){ _compose.mentions.splice(i, 1); }
+  else {
+    if(_compose.mentions.length >= 5){ alert('宛先は5人までにしてください。'); return; }
+    _compose.mentions.push(name);
   }
+  _composeRender();
+}
+function _refreshQuickSelected(){
+  const btns = document.querySelectorAll('#quickBtns .quick-btn');
+  for(let i=0;i<btns.length;i++){
+    const nm = decodeURIComponent(btns[i].getAttribute('data-name') || '');
+    btns[i].classList.toggle('selected', _compose.mentions.indexOf(nm) >= 0);
+  }
+}
+
+/* 安否ボタン：タグと定型文を本文に反映（送信はしない） */
+function pickSafety(key){
   let st = null;
   for(let i=0;i<SAFETY_STATUSES.length;i++){ if(SAFETY_STATUSES[i].key === key) st = SAFETY_STATUSES[i]; }
   if(!st) return;
-  // 入力欄に文字があれば一緒に送る。なければ定型文。
-  const msgEl = document.getElementById('chatMessage');
-  const extra = (msgEl && msgEl.value ? msgEl.value.trim() : '');
-  const body = extra || st.label;
-  const message = ('【' + st.tag + '】' + body).slice(0, 140);
-  const ok = sendChatMessage(message);
-  if(ok && msgEl){ msgEl.value = ''; }
+  _composeSyncFromInput();
+  _compose.tag = st.tag;
+  if(!_compose.body) _compose.body = st.label;
+  _composeRender();
+  const el = document.getElementById('chatMessage');
+  if(el) el.focus();
 }
+
+/* 定型文ボタン：タグ（あれば）と本文を反映（送信はしない） */
+function pickPhrase(idx){
+  const ph = _phraseList[idx];
+  if(!ph) return;
+  _composeSyncFromInput();
+  if(ph.tag) _compose.tag = ph.tag;
+  _compose.body = ph.text;
+  _composeRender();
+  const el = document.getElementById('chatMessage');
+  if(el) el.focus();
+}
+
+function sendSafety(key){
+  // 後方互換（使われていれば挿入動作にする）
+  pickSafety(key);
+}
+
 
 /* 送信の共通処理。オンラインなら送信、オフラインなら下書き保存。
    送信できたら true。連投・NG・未参加で送れなければ false。 */
@@ -1001,7 +1317,7 @@ function buildSafetyButtons(){
   const box = document.getElementById('safetyBtns');
   if(!box) return;
   box.innerHTML = SAFETY_STATUSES.map(function(st){
-    return '<button type="button" class="safety-btn" style="--sb-col:' + st.color + '" onclick="sendSafety(\'' + st.key + '\')">'
+    return '<button type="button" class="safety-btn" style="--sb-col:' + st.color + '" onclick="pickSafety(\'' + st.key + '\')">'
       + '<span class="sb-dot"></span>' + escapeHtmlA(st.label) + '</button>';
   }).join('');
 }
@@ -1096,44 +1412,29 @@ async function loadQuickList(){
   }catch(e){ /* 取得失敗は致命的でないので黙って無視 */ }
 }
 
-/* 投稿フォーム上のワンタップ指名ボタン */
+/* 作成画面のワンタップ宛先ボタン（タップで宛先に追加／解除） */
 function renderQuickButtons(){
   const box = document.getElementById('quickBtns');
   if(!box) return;
+  const cnt = document.getElementById('quickCount');
+  if(cnt) cnt.textContent = '（' + _quickList.length + '/5）';
   if(!_quickList.length){
-    box.innerHTML = '<span class="quick-empty">まだ登録がありません。「⚙ 登録」から追加できます。</span>';
+    box.innerHTML = '<span class="quick-empty">「⚙️ 設定」から、よく送る相手を登録できます。</span>';
     return;
   }
   box.innerHTML = _quickList.map(function(q){
     const memo = q.memo ? '<span class="qb-memo">（' + escapeHtmlA(q.memo) + '）</span>' : '';
-    return '<button type="button" class="quick-btn" onclick="quickInsert(\'' + encodeURIComponent(q.name) + '\')">'
+    return '<button type="button" class="quick-btn" data-name="' + encodeURIComponent(q.name) + '" onclick="quickToggle(\'' + encodeURIComponent(q.name) + '\')">'
       + '<span class="qb-at">@</span>' + escapeHtmlA(q.name) + memo + '</button>';
   }).join('');
-}
-
-/* 入力欄の先頭に「@名前 」を挿入（重複挿入は避ける） */
-function quickInsert(encName){
-  const name = decodeURIComponent(encName);
-  const el = document.getElementById('chatMessage');
-  if(!el) return;
-  const cur = el.value || '';
-  const at = '@' + name + ' ';
-  if(cur.indexOf('@' + name) >= 0){ el.focus(); return; } // すでに入っている
-  el.value = at + cur;
-  el.focus();
-}
-
-function toggleQuickEdit(){
-  const box = document.getElementById('quickEdit');
-  if(!box) return;
-  const show = (box.style.display === 'none' || !box.style.display);
-  box.style.display = show ? '' : 'none';
-  if(show){ _quickStatus('', ''); renderQuickEditList(); }
+  _refreshQuickSelected();
 }
 
 function renderQuickEditList(){
   const box = document.getElementById('quickEditList');
   if(!box) return;
+  const cnt = document.getElementById('quickCount');
+  if(cnt) cnt.textContent = '（' + _quickList.length + '/5）';
   if(!_quickList.length){ box.innerHTML = ''; return; }
   box.innerHTML = _quickList.map(function(q){
     const memo = q.memo ? '<span class="qi-memo">' + escapeHtmlA(q.memo) + '</span>' : '';
@@ -1199,6 +1500,155 @@ async function quickRemove(encName){
   }
 }
 
+/* ===== 作成／設定 画面の切り替え ===== */
+function setPane(which){
+  const create = document.getElementById('paneCreate');
+  const settings = document.getElementById('paneSettings');
+  const tc = document.getElementById('paneTabCreate');
+  const ts = document.getElementById('paneTabSettings');
+  const isSet = (which === 'settings');
+  if(create) create.style.display = isSet ? 'none' : '';
+  if(settings) settings.style.display = isSet ? '' : 'none';
+  if(tc) tc.classList.toggle('active', !isSet);
+  if(ts) ts.classList.toggle('active', isSet);
+  if(isSet){ renderQuickEditList(); renderPhraseEditList(); }
+}
+
+/* ============================================================
+   定型文リスト（ワンタップ発信）― 最大5件・安否タグ付き
+   ============================================================ */
+let _phraseList = [];     // [{id, text, tag}]
+let _phraseDraftTag = ''; // 登録フォームで選択中の安否タグ
+
+async function _phraseFetch(params){
+  let url = ARTICLES_URL + '?type=phraselist';
+  Object.keys(params).forEach(function(k){ url += '&' + k + '=' + encodeURIComponent(params[k]); });
+  url += '&_=' + Date.now();
+  const res = await fetch(url, { method:'GET' });
+  return await res.json();
+}
+function _phraseStatus(msg, kind){
+  const el = document.getElementById('phraseStatus');
+  if(!el) return;
+  el.className = 'quick-edit-status' + (kind ? ' ' + kind : '');
+  el.textContent = msg || '';
+}
+function _tagColor(tag){
+  for(let i=0;i<SAFETY_STATUSES.length;i++){ if(SAFETY_STATUSES[i].tag === tag) return SAFETY_STATUSES[i].color; }
+  return '';
+}
+
+async function loadPhraseList(){
+  if(!isChatLoggedIn()){ _phraseList = []; renderPhraseButtons(); return; }
+  const login = getChatLogin();
+  if(!ARTICLES_URL || ARTICLES_URL.indexOf('http') !== 0) return;
+  try{
+    const data = await _phraseFetch({ action:'list', code:login.code, password:_quickPassword() });
+    if(data && data.ok){
+      _phraseList = Array.isArray(data.list) ? data.list : [];
+      renderPhraseButtons();
+      renderPhraseEditList();
+    }
+  }catch(e){}
+}
+
+/* 作成画面の定型文ボタン */
+function renderPhraseButtons(){
+  const box = document.getElementById('phraseBtns');
+  if(!box) return;
+  if(!_phraseList.length){
+    box.innerHTML = '<span class="phrase-empty">「⚙️ 設定」から、よく送る定型文を登録できます。</span>';
+    return;
+  }
+  box.innerHTML = _phraseList.map(function(ph, idx){
+    const col = _tagColor(ph.tag);
+    const tag = ph.tag ? '<span class="pb-tag" style="background:' + col + '">' + escapeHtmlA(ph.tag) + '</span>' : '';
+    return '<button type="button" class="phrase-btn" onclick="pickPhrase(' + idx + ')">'
+      + tag + '<span class="pb-text">' + escapeHtmlA(ph.text) + '</span></button>';
+  }).join('');
+}
+
+/* 設定画面：安否タグの選択ピル */
+function renderPhraseTagPicker(){
+  const box = document.getElementById('phraseTagRow');
+  if(!box) return;
+  let html = '<span class="phrase-tag-label">安否タグ：</span>';
+  html += '<button type="button" class="ptag-pick' + (_phraseDraftTag===''?' active':'') + '" style="border-color:var(--muted2)" onclick="setPhraseDraftTag(\'\')">なし</button>';
+  html += SAFETY_STATUSES.map(function(st){
+    const active = (_phraseDraftTag === st.tag);
+    return '<button type="button" class="ptag-pick' + (active?' active':'') + '" style="border-color:' + st.color + (active?(';background:'+st.color):'') + '" onclick="setPhraseDraftTag(\'' + st.tag + '\')">'
+      + '<span class="pp-dot" style="background:' + st.color + '"></span>' + escapeHtmlA(st.short) + '</button>';
+  }).join('');
+  box.innerHTML = html;
+}
+function setPhraseDraftTag(tag){
+  _phraseDraftTag = tag || '';
+  renderPhraseTagPicker();
+}
+
+function renderPhraseEditList(){
+  const box = document.getElementById('phraseEditList');
+  if(!box) return;
+  const cnt = document.getElementById('phraseCount');
+  if(cnt) cnt.textContent = '（' + _phraseList.length + '/5）';
+  if(!_phraseList.length){ box.innerHTML = ''; return; }
+  box.innerHTML = _phraseList.map(function(ph){
+    const col = _tagColor(ph.tag);
+    const tag = ph.tag ? '<span class="qi-phrasetag" style="background:' + col + '">' + escapeHtmlA(ph.tag) + '</span>' : '';
+    return '<div class="quick-item">'
+      + tag
+      + '<span class="qi-name">' + escapeHtmlA(ph.text) + '</span>'
+      + '<button type="button" class="qi-del" onclick="phraseRemove(\'' + encodeURIComponent(ph.id) + '\')">削除</button>'
+      + '</div>';
+  }).join('');
+}
+
+async function phraseAdd(){
+  if(!isChatLoggedIn()){ _phraseStatus('先に伝言板に参加してください。', 'err'); return; }
+  const login = getChatLogin();
+  const textEl = document.getElementById('phraseText');
+  const text = (textEl ? textEl.value : '').trim();
+  if(!text){ _phraseStatus('定型文を入力してください。', 'err'); return; }
+  if(_phraseList.length >= 5){ _phraseStatus('登録は5件までです。', 'err'); return; }
+  _phraseStatus('登録中…', 'info');
+  try{
+    const data = await _phraseFetch({ action:'add', code:login.code, text:text, tag:_phraseDraftTag, password:_quickPassword() });
+    if(data && data.ok){
+      _phraseList = Array.isArray(data.list) ? data.list : _phraseList;
+      renderPhraseButtons(); renderPhraseEditList();
+      if(textEl) textEl.value = '';
+      _phraseDraftTag = ''; renderPhraseTagPicker();
+      _phraseStatus(data.duplicate ? 'すでに同じ定型文が登録されています。' : '登録しました。', 'ok');
+    } else if(data && data.error === 'full'){
+      _phraseStatus('登録は5件までです。', 'err');
+    } else if(data && data.needPassword){
+      _phraseStatus('このコードにはパスワードが設定されています。スタンプカードでログインしてからお試しください。', 'err');
+    } else {
+      _phraseStatus('登録できませんでした。時間をおいてお試しください。', 'err');
+    }
+  }catch(e){
+    _phraseStatus('通信エラーが発生しました。電波状況をご確認ください。', 'err');
+  }
+}
+
+async function phraseRemove(encId){
+  if(!isChatLoggedIn()) return;
+  const login = getChatLogin();
+  const id = decodeURIComponent(encId);
+  _phraseStatus('削除中…', 'info');
+  try{
+    const data = await _phraseFetch({ action:'remove', code:login.code, id:id, password:_quickPassword() });
+    if(data && data.ok){
+      _phraseList = Array.isArray(data.list) ? data.list : [];
+      renderPhraseButtons(); renderPhraseEditList();
+      _phraseStatus('削除しました。', 'ok');
+    } else {
+      _phraseStatus('削除できませんでした。', 'err');
+    }
+  }catch(e){
+    _phraseStatus('通信エラーが発生しました。', 'err');
+  }
+}
 
 
 function appendLocalChat(name, message, isDraft){
@@ -1904,6 +2354,12 @@ function notifyPrefill(){
 (function init(){
   buildSafetyButtons();
   buildFilterChips();
+  renderPhraseTagPicker();
+  renderQuickButtons();
+  renderPhraseButtons();
+  // 入力欄を手で編集したら作成状態に取り込む
+  var msgEl = document.getElementById('chatMessage');
+  if(msgEl){ msgEl.addEventListener('input', _composeSyncFromInput); }
   refreshChatLoginUI();
   _startResendWatcher();
   loadChat();
