@@ -327,6 +327,54 @@
     border-radius:8px;padding:8px 11px;
   }
 
+  /* 簡単指名（@お気に入り宛先） */
+  .quick-row{display:flex;flex-direction:column;gap:6px;}
+  .quick-head{display:flex;align-items:center;gap:8px;}
+  .quick-label{font-size:11px;color:var(--muted);font-weight:600;}
+  .quick-edit-btn{
+    margin-left:auto;cursor:pointer;background:transparent;
+    border:1px solid var(--border);border-radius:14px;color:var(--muted);
+    font-size:10.5px;font-weight:700;padding:3px 10px;
+  }
+  .quick-edit-btn:hover{color:var(--blue);border-color:var(--blue);}
+  .quick-btns{display:flex;gap:7px;flex-wrap:wrap;}
+  .quick-btn{
+    display:inline-flex;align-items:center;gap:5px;cursor:pointer;
+    border:1.5px solid var(--blue);border-radius:18px;
+    padding:6px 12px;font-size:12px;font-weight:700;
+    background:rgba(0,180,255,0.08);color:var(--text);
+  }
+  .quick-btn:hover{background:rgba(0,180,255,0.16);}
+  .quick-btn .qb-at{color:var(--blue);font-weight:800;}
+  .quick-btn .qb-memo{font-size:10px;color:var(--muted);font-weight:600;}
+  .quick-empty{font-size:11px;color:var(--muted2);}
+
+  .quick-edit{
+    background:var(--surface2);border:1px solid var(--border);
+    border-radius:11px;padding:12px;display:flex;flex-direction:column;gap:9px;
+  }
+  .quick-edit-desc{font-size:11.5px;color:var(--muted);line-height:1.6;}
+  .quick-edit-form{display:flex;gap:7px;flex-wrap:wrap;}
+  .quick-edit-form .field{flex:1;min-width:120px;}
+  .quick-edit-form .btn-primary{flex:0 0 auto;padding:9px 16px;}
+  .quick-edit-status{font-size:11.5px;font-weight:700;min-height:1px;}
+  .quick-edit-status.err{color:var(--accent);}
+  .quick-edit-status.ok{color:var(--ok);}
+  .quick-edit-status.info{color:var(--blue);}
+  .quick-edit-list{display:flex;flex-direction:column;gap:6px;}
+  .quick-item{
+    display:flex;align-items:center;gap:8px;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:9px;padding:7px 11px;
+  }
+  .quick-item .qi-name{font-size:13px;font-weight:700;}
+  .quick-item .qi-name b{color:var(--blue);}
+  .quick-item .qi-memo{font-size:11px;color:var(--muted);}
+  .quick-item .qi-del{
+    margin-left:auto;cursor:pointer;background:transparent;border:none;
+    color:var(--accent);font-size:12px;font-weight:700;padding:2px 6px;
+  }
+
   /* 絞り込み・並べ替え */
   .filter-bar{
     display:flex;align-items:center;gap:8px;margin-top:14px;
@@ -527,6 +575,25 @@
       <div class="safety-row" id="safetyRow">
         <div class="safety-label">いまの状況をワンタップで知らせる：</div>
         <div class="safety-btns" id="safetyBtns"></div>
+      </div>
+
+      <!-- 簡単指名（@お気に入り宛先） -->
+      <div class="quick-row" id="quickRow">
+        <div class="quick-head">
+          <span class="quick-label">よく送る相手（@指名）：</span>
+          <button type="button" class="quick-edit-btn" onclick="toggleQuickEdit()">⚙ 登録</button>
+        </div>
+        <div class="quick-btns" id="quickBtns"></div>
+        <div class="quick-edit" id="quickEdit" style="display:none;">
+          <div class="quick-edit-desc">よく連絡する相手を5人まで登録できます。相手の表示名（伝言板に参加済みの名前）と、自分用のメモ（例：お父さん）を入れて追加してください。</div>
+          <div class="quick-edit-form">
+            <input type="text" id="quickName" class="field" maxlength="20" placeholder="相手の表示名（@は不要）">
+            <input type="text" id="quickMemo" class="field" maxlength="20" placeholder="メモ（任意・例：お父さん）">
+            <button type="button" class="btn-primary" onclick="quickAdd()">追加</button>
+          </div>
+          <div class="quick-edit-status" id="quickStatus"></div>
+          <div class="quick-edit-list" id="quickEditList"></div>
+        </div>
       </div>
 
       <div class="send-row">
@@ -772,9 +839,11 @@ function refreshChatLoginUI(){
     if(loginBox) loginBox.style.display = 'none';
     if(postBox)  postBox.style.display = 'flex';
     if(info) info.textContent = '✅ ' + (l.name || '匿名') + ' として参加中';
+    loadQuickList();
   } else {
     if(loginBox) loginBox.style.display = 'block';
     if(postBox)  postBox.style.display = 'none';
+    _quickList = [];
   }
 }
 
@@ -988,6 +1057,146 @@ function _visibleChatList(){
   let arr = _chatList.filter(_msgMatchesFilter);
   if(_chatSort === 'old'){ arr = arr.slice().reverse(); }
   return arr;
+}
+
+/* ============================================================
+   簡単指名（@お気に入り宛先）― 最大5人
+   ============================================================ */
+let _quickList = [];   // [{name, memo}]
+
+function _quickPassword(){
+  try { return localStorage.getItem('stamp_pw') || ''; } catch(e){ return ''; }
+}
+async function _quickFetch(params){
+  let url = ARTICLES_URL + '?type=quicklist';
+  Object.keys(params).forEach(function(k){ url += '&' + k + '=' + encodeURIComponent(params[k]); });
+  url += '&_=' + Date.now();
+  const res = await fetch(url, { method:'GET' });
+  return await res.json();
+}
+function _quickStatus(msg, kind){
+  const el = document.getElementById('quickStatus');
+  if(!el) return;
+  el.className = 'quick-edit-status' + (kind ? ' ' + kind : '');
+  el.textContent = msg || '';
+}
+
+/* 起動・ログイン時に自分の指名リストを読み込む */
+async function loadQuickList(){
+  if(!isChatLoggedIn()){ _quickList = []; renderQuickButtons(); return; }
+  const login = getChatLogin();
+  if(!ARTICLES_URL || ARTICLES_URL.indexOf('http') !== 0) return;
+  try{
+    const data = await _quickFetch({ action:'list', code:login.code, password:_quickPassword() });
+    if(data && data.ok){
+      _quickList = Array.isArray(data.list) ? data.list : [];
+      renderQuickButtons();
+      renderQuickEditList();
+    }
+  }catch(e){ /* 取得失敗は致命的でないので黙って無視 */ }
+}
+
+/* 投稿フォーム上のワンタップ指名ボタン */
+function renderQuickButtons(){
+  const box = document.getElementById('quickBtns');
+  if(!box) return;
+  if(!_quickList.length){
+    box.innerHTML = '<span class="quick-empty">まだ登録がありません。「⚙ 登録」から追加できます。</span>';
+    return;
+  }
+  box.innerHTML = _quickList.map(function(q){
+    const memo = q.memo ? '<span class="qb-memo">（' + escapeHtmlA(q.memo) + '）</span>' : '';
+    return '<button type="button" class="quick-btn" onclick="quickInsert(\'' + encodeURIComponent(q.name) + '\')">'
+      + '<span class="qb-at">@</span>' + escapeHtmlA(q.name) + memo + '</button>';
+  }).join('');
+}
+
+/* 入力欄の先頭に「@名前 」を挿入（重複挿入は避ける） */
+function quickInsert(encName){
+  const name = decodeURIComponent(encName);
+  const el = document.getElementById('chatMessage');
+  if(!el) return;
+  const cur = el.value || '';
+  const at = '@' + name + ' ';
+  if(cur.indexOf('@' + name) >= 0){ el.focus(); return; } // すでに入っている
+  el.value = at + cur;
+  el.focus();
+}
+
+function toggleQuickEdit(){
+  const box = document.getElementById('quickEdit');
+  if(!box) return;
+  const show = (box.style.display === 'none' || !box.style.display);
+  box.style.display = show ? '' : 'none';
+  if(show){ _quickStatus('', ''); renderQuickEditList(); }
+}
+
+function renderQuickEditList(){
+  const box = document.getElementById('quickEditList');
+  if(!box) return;
+  if(!_quickList.length){ box.innerHTML = ''; return; }
+  box.innerHTML = _quickList.map(function(q){
+    const memo = q.memo ? '<span class="qi-memo">' + escapeHtmlA(q.memo) + '</span>' : '';
+    return '<div class="quick-item">'
+      + '<span class="qi-name"><b>@' + escapeHtmlA(q.name) + '</b></span>'
+      + memo
+      + '<button type="button" class="qi-del" onclick="quickRemove(\'' + encodeURIComponent(q.name) + '\')">削除</button>'
+      + '</div>';
+  }).join('');
+}
+
+async function quickAdd(){
+  if(!isChatLoggedIn()){ _quickStatus('先に伝言板に参加してください。', 'err'); return; }
+  const login = getChatLogin();
+  const nameEl = document.getElementById('quickName');
+  const memoEl = document.getElementById('quickMemo');
+  const name = (nameEl ? nameEl.value : '').trim();
+  const memo = (memoEl ? memoEl.value : '').trim();
+  if(!name){ _quickStatus('相手の表示名を入力してください。', 'err'); return; }
+  if(_quickList.length >= 5){ _quickStatus('登録は5人までです。', 'err'); return; }
+  _quickStatus('登録中…', 'info');
+  try{
+    const data = await _quickFetch({ action:'add', code:login.code, name:name, memo:memo, password:_quickPassword() });
+    if(data && data.ok){
+      _quickList = Array.isArray(data.list) ? data.list : _quickList;
+      renderQuickButtons(); renderQuickEditList();
+      if(nameEl) nameEl.value = ''; if(memoEl) memoEl.value = '';
+      _quickStatus(data.updated ? 'メモを更新しました。' : '登録しました。', 'ok');
+    } else if(data && data.notFound){
+      _quickStatus('「' + name + '」さんは伝言板の参加者に見つかりませんでした。相手が伝言板に参加（投稿）した後で登録できます。表示名が正確かもご確認ください。', 'err');
+    } else if(data && data.error === 'self'){
+      _quickStatus('自分自身は登録できません。', 'err');
+    } else if(data && data.error === 'full'){
+      _quickStatus('登録は5人までです。', 'err');
+    } else if(data && data.needName){
+      _quickStatus('先に伝言板で表示名を作って（参加して）ください。', 'err');
+    } else if(data && data.needPassword){
+      _quickStatus('このコードにはパスワードが設定されています。スタンプカードでログインしてからお試しください。', 'err');
+    } else {
+      _quickStatus('登録できませんでした。時間をおいてお試しください。', 'err');
+    }
+  }catch(e){
+    _quickStatus('通信エラーが発生しました。電波状況をご確認ください。', 'err');
+  }
+}
+
+async function quickRemove(encName){
+  if(!isChatLoggedIn()) return;
+  const login = getChatLogin();
+  const name = decodeURIComponent(encName);
+  _quickStatus('削除中…', 'info');
+  try{
+    const data = await _quickFetch({ action:'remove', code:login.code, name:name, password:_quickPassword() });
+    if(data && data.ok){
+      _quickList = Array.isArray(data.list) ? data.list : [];
+      renderQuickButtons(); renderQuickEditList();
+      _quickStatus('削除しました。', 'ok');
+    } else {
+      _quickStatus('削除できませんでした。', 'err');
+    }
+  }catch(e){
+    _quickStatus('通信エラーが発生しました。', 'err');
+  }
 }
 
 
