@@ -328,6 +328,45 @@
     border-radius:7px;padding:4px 12px;font-size:11px;font-weight:700;
   }
 
+  /* 引き継ぎコード発行 完了モーダル */
+  .issue-overlay{
+    position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;
+    padding:20px;background:rgba(2,8,5,0.8);backdrop-filter:blur(3px);
+  }
+  .issue-overlay.show{display:flex;}
+  .issue-modal{
+    width:100%;max-width:380px;background:var(--surface);
+    border:1px solid rgba(47,208,122,0.4);border-radius:18px;
+    padding:24px 22px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.55);
+  }
+  .issue-modal-icon{font-size:38px;line-height:1;margin-bottom:8px;}
+  .issue-modal-title{font-size:17px;font-weight:800;margin:0 0 6px;color:var(--text);}
+  .issue-modal-sub{font-size:12.5px;color:var(--muted);line-height:1.6;margin:0 0 16px;}
+  .issue-modal-sub b{color:var(--ok);}
+  .issue-modal-code{
+    font-size:24px;font-weight:800;letter-spacing:.08em;color:var(--ok);
+    background:rgba(47,208,122,0.08);border:1px dashed rgba(47,208,122,0.5);
+    border-radius:12px;padding:14px 10px;margin-bottom:12px;word-break:break-all;
+    user-select:all;-webkit-user-select:all;
+  }
+  .issue-modal-copy{
+    width:100%;cursor:pointer;border:none;border-radius:10px;
+    padding:13px;font-size:14px;font-weight:800;color:#fff;
+    background:linear-gradient(135deg,var(--ok),#1fa862);margin-bottom:14px;
+  }
+  .issue-modal-copy:hover{filter:brightness(1.08);}
+  .issue-modal-copy.copied{background:linear-gradient(135deg,var(--blue),var(--blue-deep));}
+  .issue-modal-note{
+    font-size:11.5px;color:var(--muted);line-height:1.7;margin-bottom:16px;
+    background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;
+  }
+  .issue-modal-note b{color:var(--text);}
+  .issue-modal-ok{
+    width:100%;cursor:pointer;border:1px solid var(--border);border-radius:10px;
+    padding:12px;font-size:13.5px;font-weight:700;color:var(--text);background:transparent;
+  }
+  .issue-modal-ok:hover{border-color:var(--blue);color:var(--blue);}
+
   /* 投稿フォーム */
   .post-box{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
   .loggedin{font-size:12px;color:var(--ok);font-weight:700;}
@@ -822,6 +861,22 @@
 </div>
 
 <!-- プライバシーポリシー モーダル -->
+<!-- 引き継ぎコード発行 完了モーダル -->
+<div class="issue-overlay" id="issueOverlay" onclick="if(event.target===this)closeIssueModal()">
+  <div class="issue-modal" role="dialog" aria-modal="true" aria-labelledby="issueModalTitle">
+    <div class="issue-modal-icon">✅</div>
+    <h2 id="issueModalTitle" class="issue-modal-title">引き継ぎコードを発行しました</h2>
+    <p class="issue-modal-sub">スタンプも1つ付きました。下のコードを<b>必ず控えて</b>ください。</p>
+    <div class="issue-modal-code" id="issueModalCode">DWA-XXXX-XXXX</div>
+    <button type="button" class="issue-modal-copy" id="issueModalCopyBtn" onclick="copyIssuedModal()">📋 コードをコピー</button>
+    <div class="issue-modal-note">
+      このコードは<b>防災情報センター本体でも使えます</b>（引き継ぎ・復元）。<br>
+      忘れると記録を引き継げないことがあります。スクリーンショットやメモでの保管をおすすめします。
+    </div>
+    <button type="button" class="issue-modal-ok" onclick="closeIssueModal()">閉じて伝言板へ</button>
+  </div>
+</div>
+
 <div class="pp-overlay" id="ppOverlay" onclick="if(event.target===this)closePrivacy()">
   <div class="pp-modal" role="dialog" aria-modal="true" aria-labelledby="ppTitle">
     <div class="pp-head">
@@ -1024,8 +1079,11 @@ async function issueCode(){
   btn.disabled = false; btn.textContent = '引き継ぎコードを発行して参加';
 }
 
+let _issuedCode = '';
+
 function _showIssued(code){
-  // 参加ボックス内に控え用バナーを差し込む（refreshが走る前に一瞬見せる）
+  _issuedCode = code;
+  // 参加ボックス内の控え用バナーも残す（モーダルを閉じた後も見えるように）
   let banner = document.getElementById('issuedBanner');
   if(!banner){
     banner = document.createElement('div');
@@ -1037,25 +1095,61 @@ function _showIssued(code){
   banner.innerHTML = '✅ 引き継ぎコードを発行しました。スタンプも1つ付きました。<br>'
     + '<span class="ib-code">' + escapeHtmlA(code) + '</span>'
     + 'このコードは大切に保管してください（本体サイトの復元にも使えます）。'
-    + '<br><button type="button" class="ib-copy" onclick="_copyIssued(\'' + encodeURIComponent(code) + '\')">コードをコピー</button>';
+    + '<br><button type="button" class="ib-copy" onclick="copyIssuedModal()">コードをコピー</button>';
   banner.classList.add('show');
-  // 発行後に再ログインで使えるよう、参加フォームのコード欄にも入れておく
+  // 再ログインで使えるよう、参加フォームのコード欄にも入れておく
   const codeEl = document.getElementById('chatLoginCode');
   if(codeEl) codeEl.value = code;
-  try{ alert('引き継ぎコードを発行しました：\n\n' + code + '\n\nこのコードは大切に保管してください。\n本体サイトの「引き継ぎ・復元」でも使えます。'); }catch(e){}
+  // コピーボタン付きモーダルを開く
+  openIssueModal(code);
 }
 
-function _copyIssued(encCode){
-  const code = decodeURIComponent(encCode);
+/* 発行完了モーダル */
+function openIssueModal(code){
+  const ov = document.getElementById('issueOverlay');
+  const codeEl = document.getElementById('issueModalCode');
+  const copyBtn = document.getElementById('issueModalCopyBtn');
+  if(codeEl) codeEl.textContent = code;
+  if(copyBtn){ copyBtn.classList.remove('copied'); copyBtn.textContent = '📋 コードをコピー'; }
+  if(ov) ov.classList.add('show');
+}
+function closeIssueModal(){
+  const ov = document.getElementById('issueOverlay');
+  if(ov) ov.classList.remove('show');
+}
+
+/* モーダル内のコピーボタン：クリップボードにコピーし、ボタン表示で結果を知らせる */
+function copyIssuedModal(){
+  const code = _issuedCode || (document.getElementById('issueModalCode') || {}).textContent || '';
+  if(!code) return;
+  const btn = document.getElementById('issueModalCopyBtn');
+  const done = function(ok){
+    if(btn){
+      if(ok){ btn.classList.add('copied'); btn.textContent = '✅ コピーしました'; }
+      else { btn.textContent = '長押しでコピーしてください'; }
+    }
+  };
   try{
-    navigator.clipboard.writeText(code).then(function(){
-      alert('コードをコピーしました：\n' + code);
-    }, function(){
-      alert('コピーできませんでした。手元にお控えください：\n' + code);
-    });
-  }catch(e){
-    alert('コードを控えてください：\n' + code);
-  }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(code).then(function(){ done(true); }, function(){ _fallbackCopy(code, done); });
+    } else {
+      _fallbackCopy(code, done);
+    }
+  }catch(e){ _fallbackCopy(code, done); }
+}
+
+/* クリップボードAPIが使えない環境向けのフォールバック */
+function _fallbackCopy(text, cb){
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    cb(ok);
+  }catch(e){ cb(false); }
 }
 
 function chatLogout(){
@@ -1917,13 +2011,14 @@ function _fsBubbleMeta(m){
 function fsRenderList(){
   const list = document.getElementById('fsList');
   if(!list) return;
-  const items = _chatList.filter(function(m){ return _fsNameMatches(m.name); });
+  // フィルタ（無事/要支援/自分宛て等）＋名前検索の両方を適用
+  const items = _chatList.filter(_msgMatchesFilter).filter(function(m){ return _fsNameMatches(m.name); });
   if(!_chatList.length){
     list.innerHTML = '<div class="fs-empty">まだ伝言はありません。</div>';
     return;
   }
   if(!items.length){
-    list.innerHTML = '<div class="fs-empty">「' + escapeHtmlA(_fsSearch) + '」に一致する名前の伝言はありません。</div>';
+    list.innerHTML = '<div class="fs-empty">' + (_fsSearch ? ('「' + escapeHtmlA(_fsSearch) + '」に一致する名前の伝言はありません。') : 'この条件に合う伝言はありません。') + '</div>';
     return;
   }
   list.innerHTML = items.map(function(m){
@@ -1949,6 +2044,19 @@ function fsRenderList(){
   list.scrollTop = list.scrollHeight;
 }
 
+/* ふわふわ上部のヒント表示を更新（何件中何件を表示しているか） */
+function _fsUpdateFloatHint(total, shown, hidden){
+  const hint = document.querySelector('#fsFloat .fs-hint');
+  if(!hint) return;
+  if(_fsSearch && hidden > 0){
+    hint.textContent = '「' + _fsSearch + '」を強調表示中（ほか' + hidden + '件は薄く表示）';
+  } else if(hidden > 0){
+    hint.textContent = shown + '件を表示中（全' + total + '件・古い分はここに出ません）／タップで拡大';
+  } else {
+    hint.textContent = '吹き出しをタップすると拡大して読めます';
+  }
+}
+
 function fsRenderFloat(){
   const float = document.getElementById('fsFloat');
   if(!float) return;
@@ -1972,13 +2080,58 @@ function fsRenderFloat(){
 
   const W = float.clientWidth || window.innerWidth;
   const H = float.clientHeight || (window.innerHeight - 60);
-  // 直近の伝言を最大40件、画面に漂わせる（多すぎると重なるため）
-  const items = _chatList.slice(Math.max(0, _chatList.length - 40));
   const reduce = _prefersReducedMotion();
+
+  // (1) フィルタ（無事/要支援/自分宛て等）をふわふわにも適用
+  let pool = _chatList.filter(_msgMatchesFilter);
+
+  // (2) 表示上限を画面サイズで自動調整（小さい画面ほど少なく）
+  const area = W * H;
+  let cap = Math.round(area / 26000);          // 面積あたりの目安
+  cap = Math.max(12, Math.min(48, cap));        // 12〜48件にクランプ
+  if(reduce) cap = Math.min(cap, 18);           // 動き低減設定時は控えめ
+
+  // (3) 検索中は「一致する人」を全件から優先的に拾って必ず出す
+  let items;
+  let hiddenCount = 0;
+  if(_fsSearch){
+    const matched = pool.filter(function(m){ return _fsNameMatches(m.name); });
+    const others  = pool.filter(function(m){ return !_fsNameMatches(m.name); });
+    // 一致を新しい順で優先し、空きがあれば非一致（薄表示）で埋める
+    const matchedRecent = matched.slice(Math.max(0, matched.length - cap));
+    const room = Math.max(0, cap - matchedRecent.length);
+    const othersRecent = room ? others.slice(Math.max(0, others.length - room)) : [];
+    items = matchedRecent.concat(othersRecent);
+    hiddenCount = pool.length - items.length;
+  } else {
+    // 通常は新しい方から cap 件
+    items = pool.slice(Math.max(0, pool.length - cap));
+    hiddenCount = pool.length - items.length;
+  }
+
+  // 件数ヒント（絞り込み・検索で「全部は出ていない」ことを伝える）
+  _fsUpdateFloatHint(pool.length, items.length, hiddenCount);
+
+  if(!pool.length){
+    // フィルタ/検索の結果が0件
+    let empty = float.querySelector('.fs-empty');
+    if(!empty){
+      empty = document.createElement('div');
+      empty.className = 'fs-empty';
+      empty.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);';
+      float.appendChild(empty);
+    }
+    empty.textContent = _fsSearch ? ('「' + _fsSearch + '」に一致する名前はありません。')
+                                  : 'この条件に合う伝言はありません。';
+    return;
+  } else {
+    const empty = float.querySelector('.fs-empty');
+    if(empty) empty.remove();
+  }
 
   // 重なりを抑えるため、ゆるいグリッドに配置してから揺らす
   const n = items.length;
-  const cols = Math.max(2, Math.min(5, Math.round(Math.sqrt(n * (W / Math.max(H,1)) ))));
+  const cols = Math.max(2, Math.min(6, Math.round(Math.sqrt(n * (W / Math.max(H,1)) ))));
   const rows = Math.ceil(n / cols);
   const cellW = W / cols;
   const cellH = H / Math.max(rows, 1);
