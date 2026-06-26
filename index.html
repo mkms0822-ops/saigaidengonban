@@ -121,17 +121,25 @@
   .fs-overlay{
     position:fixed;inset:0;z-index:60;display:none;flex-direction:column;
     background:
-      radial-gradient(1200px 600px at 50% -10%, rgba(0,180,255,0.10), transparent 60%),
-      var(--bg);
+      radial-gradient(1200px 700px at 50% -8%, rgba(120,220,160,0.30), transparent 60%),
+      linear-gradient(180deg, #0a1f16 0%, #0c2a1d 45%, #0e3324 100%);
+  }
+  @media (prefers-color-scheme: light){
+    .fs-overlay{
+      background:
+        radial-gradient(1100px 650px at 50% -8%, rgba(150,225,180,0.55), transparent 60%),
+        linear-gradient(180deg, #e9f7ee 0%, #dcf2e4 50%, #cfeeda 100%);
+    }
   }
   .fs-overlay.open{display:flex;}
   .fs-bar{
     flex-shrink:0;display:flex;align-items:center;gap:10px;
-    padding:12px 16px;border-bottom:1px solid var(--border);
-    background:rgba(4,8,15,0.6);backdrop-filter:blur(8px);
+    padding:12px 16px;border-bottom:1px solid rgba(120,220,160,0.18);
+    background:rgba(10,40,28,0.55);backdrop-filter:blur(8px);
   }
-  @media (prefers-color-scheme: light){ .fs-bar{background:rgba(255,255,255,0.7);} }
-  .fs-bar .fs-title{font-size:13px;font-weight:800;color:var(--blue);letter-spacing:.04em;}
+  @media (prefers-color-scheme: light){ .fs-bar{background:rgba(240,250,243,0.75);border-bottom-color:rgba(60,160,110,0.2);} }
+  .fs-bar .fs-title{font-size:13px;font-weight:800;color:#5fe0a0;letter-spacing:.04em;}
+  @media (prefers-color-scheme: light){ .fs-bar .fs-title{color:#1f9d5b;} }
   .fs-bar .fs-spacer{flex:1;}
   .fs-toggle{
     display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;
@@ -153,6 +161,34 @@
   }
   .fs-close:hover{color:var(--text);border-color:var(--blue);}
 
+  /* 名前検索バー */
+  .fs-searchbar{
+    flex-shrink:0;display:flex;align-items:center;gap:8px;
+    padding:9px 16px;border-bottom:1px solid rgba(120,220,160,0.14);
+    background:rgba(10,40,28,0.35);
+  }
+  @media (prefers-color-scheme: light){ .fs-searchbar{background:rgba(240,250,243,0.5);border-bottom-color:rgba(60,160,110,0.16);} }
+  .fs-searchbar .fs-search-ic{font-size:13px;opacity:.8;flex-shrink:0;}
+  .fs-search-input{
+    flex:1;min-width:0;background:rgba(255,255,255,0.06);
+    border:1px solid rgba(120,220,160,0.25);border-radius:9px;
+    padding:8px 12px;font-size:13px;color:var(--text);
+  }
+  @media (prefers-color-scheme: light){ .fs-search-input{background:rgba(255,255,255,0.8);} }
+  .fs-search-input:focus{outline:none;border-color:#5fe0a0;}
+  .fs-search-input::placeholder{color:var(--muted);}
+  .fs-search-clear{
+    background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;
+    padding:2px 6px;flex-shrink:0;line-height:1;
+  }
+  .fs-search-clear:hover{color:var(--text);}
+  .fs-search-count{font-size:11px;color:#5fe0a0;flex-shrink:0;white-space:nowrap;font-weight:700;}
+  @media (prefers-color-scheme: light){ .fs-search-count{color:#1f9d5b;} }
+
+  /* 検索で外れた吹き出しは薄く沈める（ふわふわビュー） */
+  .bubble.dimmed{opacity:0.12;filter:saturate(0.4);}
+  .bubble.match{box-shadow:0 0 0 2px #5fe0a0, 0 8px 26px rgba(95,224,160,0.35);z-index:3;}
+
   /* ふわふわ漂うレイヤー */
   .fs-float{position:relative;flex:1;overflow:hidden;}
   .fs-float .fs-hint{
@@ -163,18 +199,32 @@
   }
   .bubble{
     position:absolute;max-width:230px;cursor:pointer;
-    background:var(--surface);border:1px solid var(--border);
-    border-radius:14px;padding:10px 13px;box-shadow:0 6px 22px rgba(0,0,0,0.28);
+    background:var(--bub-bg, var(--surface));
+    border:1.5px solid var(--bub-border, var(--border));
+    border-radius:14px;padding:10px 13px;box-shadow:0 6px 22px rgba(0,0,0,0.30);
     will-change:transform;
   }
-  @media (prefers-color-scheme: light){ .bubble{box-shadow:0 4px 18px rgba(0,60,120,0.12);} }
-  .bubble .b-name{font-size:11px;font-weight:800;color:var(--blue);margin-bottom:2px;}
+  @media (prefers-color-scheme: light){ .bubble{box-shadow:0 4px 18px rgba(0,80,50,0.14);} }
+  .bubble .b-name{font-size:11px;font-weight:800;color:var(--bub-name, var(--blue));margin-bottom:2px;}
   .bubble .b-body{font-size:13px;color:var(--text);line-height:1.55;word-break:break-word;
     display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
   .bubble .b-time{font-size:9.5px;color:var(--muted);margin-top:3px;}
-  .bubble.mine{border-color:rgba(0,180,255,0.6);background:rgba(0,180,255,0.09);}
-  .bubble.mention{border-color:rgba(255,140,0,0.65);background:rgba(255,140,0,0.10);
-    box-shadow:0 6px 26px rgba(255,140,0,0.22);}
+
+  /* 吹き出しの形バリエーション（名前の雰囲気でランダムに割当） */
+  .bubble.shape-round   { border-radius:18px; }
+  .bubble.shape-pill    { border-radius:26px; }
+  .bubble.shape-soft    { border-radius:10px 22px 10px 22px; }
+  .bubble.shape-leaf    { border-radius:22px 6px 22px 6px; }
+  .bubble.shape-cloud   { border-radius:24px 24px 24px 8px; }
+  .bubble.shape-tag     { border-radius:6px 16px 16px 16px; }
+  .bubble.shape-card    { border-radius:8px; }
+
+  /* mine / mention は色を上書きして必ず目立たせる */
+  .bubble.mine{border-color:rgba(0,180,255,0.7) !important;background:rgba(0,180,255,0.10) !important;}
+  .bubble.mine .b-name{color:var(--blue) !important;}
+  .bubble.mention{border-color:rgba(255,140,0,0.7) !important;background:rgba(255,140,0,0.12) !important;
+    box-shadow:0 6px 26px rgba(255,140,0,0.25);}
+  .bubble.mention .b-name{color:var(--accent2) !important;}
   .bubble .b-tag{
     display:inline-block;font-size:9px;font-weight:800;letter-spacing:.05em;
     padding:1px 7px;border-radius:10px;margin-bottom:4px;
@@ -479,6 +529,13 @@
     <button type="button" class="fs-close" onclick="closeFullscreen()" aria-label="閉じる">×</button>
   </div>
 
+  <div class="fs-searchbar">
+    <span class="fs-search-ic">🔍</span>
+    <input type="search" id="fsSearch" class="fs-search-input" placeholder="名前で検索（例：たろう）" oninput="fsOnSearch()" autocomplete="off">
+    <button type="button" class="fs-search-clear" id="fsSearchClear" onclick="fsClearSearch()" style="display:none;">×</button>
+    <span class="fs-search-count" id="fsSearchCount"></span>
+  </div>
+
   <div class="fs-float" id="fsFloat">
     <div class="fs-hint">吹き出しをタップすると拡大して読めます</div>
     <div class="fs-backdrop" id="fsBackdrop" onclick="fsUnfocus()"></div>
@@ -516,6 +573,7 @@ let _fsOpen = false;
 let _fsView = 'float';   // 'float' | 'list'
 let _fsPaused = false;
 let _fsFocusedId = null;
+let _fsSearch = '';
 
 function escapeHtmlA(s){
   return String(s == null ? '' : s)
@@ -821,6 +879,79 @@ function fsRender(){
   if(!_fsOpen) return;
   if(_fsView === 'list') fsRenderList();
   else fsRenderFloat();
+  _fsUpdateSearchCount();
+}
+
+/* 名前検索 */
+function fsOnSearch(){
+  const inp = document.getElementById('fsSearch');
+  _fsSearch = (inp ? inp.value : '').trim().toLowerCase();
+  const clr = document.getElementById('fsSearchClear');
+  if(clr) clr.style.display = _fsSearch ? '' : 'none';
+  // フォーカス中の拡大は閉じる（検索結果を見やすく）
+  if(_fsFocusedId) fsUnfocus();
+  fsRender();
+}
+function fsClearSearch(){
+  const inp = document.getElementById('fsSearch');
+  if(inp) inp.value = '';
+  _fsSearch = '';
+  const clr = document.getElementById('fsSearchClear');
+  if(clr) clr.style.display = 'none';
+  fsRender();
+  if(inp) inp.focus();
+}
+function _fsUpdateSearchCount(){
+  const el = document.getElementById('fsSearchCount');
+  if(!el) return;
+  if(!_fsSearch){ el.textContent = ''; return; }
+  const hits = _chatList.filter(function(m){ return _fsNameMatches(m.name); }).length;
+  el.textContent = hits + '件';
+}
+
+/* 名前から決定的なハッシュを作る（同じ名前は毎回同じ見た目になる） */
+function _nameHash(name){
+  const s = String(name || '匿名');
+  let h = 5381;
+  for(let i=0;i<s.length;i++){ h = ((h<<5)+h + s.charCodeAt(i)) & 0xffffffff; }
+  return Math.abs(h);
+}
+
+/* 名前の「雰囲気」で吹き出しの形と色を決める。
+   形はハッシュで、色相は名前から導いて、やわらかいパステルにする。 */
+const _FS_SHAPES = ['shape-round','shape-pill','shape-soft','shape-leaf','shape-cloud','shape-tag','shape-card'];
+function _bubbleStyleFor(name){
+  const h = _nameHash(name);
+  const shape = _FS_SHAPES[h % _FS_SHAPES.length];
+  // 色相：名前ハッシュから 0-359。彩度・明度はダーク/ライトで調整。
+  const hue = h % 360;
+  const dark = !(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+  let bg, border, nameCol;
+  if(dark){
+    bg     = 'hsla(' + hue + ',55%,22%,0.92)';
+    border = 'hsla(' + hue + ',70%,55%,0.85)';
+    nameCol= 'hsl(' + hue + ',80%,72%)';
+  } else {
+    bg     = 'hsla(' + hue + ',70%,94%,0.95)';
+    border = 'hsla(' + hue + ',55%,55%,0.8)';
+    nameCol= 'hsl(' + hue + ',60%,38%)';
+  }
+  return { shape: shape, bg: bg, border: border, name: nameCol };
+}
+
+/* 吹き出し要素に名前由来の形・色を適用する（mine/mention はCSSで上書きされる） */
+function _applyBubbleStyle(el, name){
+  const st = _bubbleStyleFor(name);
+  el.classList.add(st.shape);
+  el.style.setProperty('--bub-bg', st.bg);
+  el.style.setProperty('--bub-border', st.border);
+  el.style.setProperty('--bub-name', st.name);
+}
+
+/* 検索キーワードに名前が一致するか */
+function _fsNameMatches(name){
+  if(!_fsSearch) return true;
+  return String(name || '匿名').toLowerCase().indexOf(_fsSearch) >= 0;
 }
 
 function _fsBubbleMeta(m){
@@ -833,11 +964,16 @@ function _fsBubbleMeta(m){
 function fsRenderList(){
   const list = document.getElementById('fsList');
   if(!list) return;
+  const items = _chatList.filter(function(m){ return _fsNameMatches(m.name); });
   if(!_chatList.length){
     list.innerHTML = '<div class="fs-empty">まだ伝言はありません。</div>';
     return;
   }
-  list.innerHTML = _chatList.map(function(m){
+  if(!items.length){
+    list.innerHTML = '<div class="fs-empty">「' + escapeHtmlA(_fsSearch) + '」に一致する名前の伝言はありません。</div>';
+    return;
+  }
+  list.innerHTML = items.map(function(m){
     const meta = _fsBubbleMeta(m);
     const name = escapeHtmlA(m.name || '匿名');
     const time = escapeHtmlA(m.time || '');
@@ -903,6 +1039,13 @@ function fsRenderFloat(){
 
     const b = document.createElement('div');
     b.className = 'bubble' + (meta.mine?' mine':'') + (meta.mention?' mention':'') + (reduce?'':' floating');
+    // 名前の雰囲気で形・色を決める（mine/mention のときは控えめに：色はCSSで上書きされる）
+    _applyBubbleStyle(b, m.name);
+    // 検索：一致しないものは薄く、一致は強調
+    if(_fsSearch){
+      if(_fsNameMatches(m.name)) b.classList.add('match');
+      else b.classList.add('dimmed');
+    }
     b.style.left = Math.round(x) + 'px';
     b.style.top = Math.round(y) + 'px';
 
