@@ -307,6 +307,57 @@
   .send-row .field{flex:1;}
   .logout-btn{align-self:flex-start;background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;padding:0;margin-top:2px;}
 
+  /* 安否ステータスのワンタップ */
+  .safety-row{display:flex;flex-direction:column;gap:6px;}
+  .safety-label{font-size:11px;color:var(--muted);font-weight:600;}
+  .safety-btns{display:flex;gap:7px;flex-wrap:wrap;}
+  .safety-btn{
+    display:inline-flex;align-items:center;gap:5px;cursor:pointer;
+    border:1.5px solid var(--sb-col,#888);border-radius:20px;
+    padding:7px 13px;font-size:12.5px;font-weight:700;
+    background:transparent;color:var(--text);transition:transform .1s;
+  }
+  .safety-btn:hover{transform:translateY(-1px);}
+  .safety-btn:active{transform:scale(0.96);}
+  .safety-btn .sb-dot{width:9px;height:9px;border-radius:50%;background:var(--sb-col,#888);flex-shrink:0;}
+
+  .offline-note{
+    font-size:11.5px;line-height:1.6;color:var(--accent2);
+    background:rgba(255,140,0,0.08);border:1px solid rgba(255,140,0,0.25);
+    border-radius:8px;padding:8px 11px;
+  }
+
+  /* 絞り込み・並べ替え */
+  .filter-bar{
+    display:flex;align-items:center;gap:8px;margin-top:14px;
+    flex-wrap:wrap;
+  }
+  .filter-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
+  .filter-chip{
+    cursor:pointer;border:1px solid var(--border);border-radius:16px;
+    padding:5px 11px;font-size:11.5px;font-weight:700;color:var(--muted);
+    background:transparent;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;
+  }
+  .filter-chip:hover{color:var(--text);border-color:var(--blue);}
+  .filter-chip.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .filter-chip .fc-count{font-size:10px;opacity:.85;}
+  .sort-btn{
+    cursor:pointer;border:1px solid var(--border);border-radius:16px;
+    padding:5px 11px;font-size:11.5px;font-weight:700;color:var(--muted);
+    background:transparent;white-space:nowrap;
+  }
+  .sort-btn:hover{color:var(--text);border-color:var(--blue);}
+
+  /* 安否バッジ（一覧の各伝言・吹き出し） */
+  .st-badge{
+    display:inline-flex;align-items:center;gap:4px;
+    font-size:10.5px;font-weight:800;letter-spacing:.02em;
+    padding:1px 8px;border-radius:11px;margin-right:6px;
+    color:#fff;
+  }
+  .msg.has-status{border-left:3px solid var(--st-col,transparent);}
+  .bubble .st-badge{margin-bottom:4px;}
+
   .note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.7;}
 
   /* 緊急対応マニュアルへの導線 */
@@ -471,11 +522,25 @@
     <!-- 参加後：投稿フォーム -->
     <div id="chatPostBox" class="post-box" style="display:none;">
       <div class="loggedin" id="chatLoggedin"></div>
+
+      <!-- 安否ステータスのワンタップ登録 -->
+      <div class="safety-row" id="safetyRow">
+        <div class="safety-label">いまの状況をワンタップで知らせる：</div>
+        <div class="safety-btns" id="safetyBtns"></div>
+      </div>
+
       <div class="send-row">
         <input type="text" id="chatMessage" class="field" maxlength="140" placeholder="伝言を入力（140字まで）" onkeydown="if(event.key==='Enter')submitChat()">
         <button type="button" id="chatSendBtn" class="btn-primary" onclick="submitChat()">送信</button>
       </div>
+      <div class="offline-note" id="offlineNote" style="display:none;">📴 オフラインです。送信した伝言は下書きとして保存し、つながり次第そのまま自動で送信します。</div>
       <button type="button" class="logout-btn" onclick="chatLogout()">ログアウト</button>
+    </div>
+
+    <!-- 絞り込み・並べ替え -->
+    <div class="filter-bar" id="filterBar">
+      <div class="filter-chips" id="filterChips"></div>
+      <button type="button" class="sort-btn" id="sortBtn" onclick="toggleChatSort()">🕒 新しい順</button>
     </div>
 
     <div class="note">※ 伝言は自動で更新されます。不適切な投稿は「⚠ 通報」でお知らせください。緊急の通報・救助要請は <b>119番／110番</b> へ。</div>
@@ -586,6 +651,37 @@ let _fsPaused = false;
 let _fsFocusedId = null;
 let _fsSearch = '';
 
+/* ===== 安否ステータス（本文先頭タグ方式） =====
+   投稿時は本文の先頭に【無事】などを付けて送る。
+   一覧では先頭タグを読み取って色分け表示する。 */
+const SAFETY_STATUSES = [
+  { key:'safe',   tag:'無事',     label:'無事です',       short:'無事',   emoji:'🟢', color:'#2fd07a' },
+  { key:'shelter',tag:'避難中',   label:'避難所にいます', short:'避難中', emoji:'🔵', color:'#00b4ff' },
+  { key:'home',   tag:'在宅',     label:'自宅にいます',   short:'在宅',   emoji:'🟡', color:'#ffc83d' },
+  { key:'help',   tag:'要支援',   label:'助けが必要',     short:'要支援', emoji:'🔴', color:'#ff4d4d' }
+];
+function _statusByTag(tag){
+  for(let i=0;i<SAFETY_STATUSES.length;i++){ if(SAFETY_STATUSES[i].tag === tag) return SAFETY_STATUSES[i]; }
+  return null;
+}
+/* メッセージ先頭の【○○】を読み取り、{status, body} を返す。タグが無ければ status=null */
+function parseSafety(message){
+  const msg = String(message || '');
+  const m = msg.match(/^[【\[]([^】\]]{1,6})[】\]]\s*/);
+  if(m){
+    const st = _statusByTag(m[1].trim());
+    if(st) return { status: st, body: msg.slice(m[0].length) };
+  }
+  return { status: null, body: msg };
+}
+
+let _chatFilter = 'all';   // all | safe | shelter | home | help | mention
+let _chatSort = 'new';     // new | old
+
+/* オフライン下書き */
+const CHAT_DRAFTS_KEY = 'chat_drafts_v1';
+let _resendTimer = null;
+
 function escapeHtmlA(s){
   return String(s == null ? '' : s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -688,51 +784,229 @@ function submitChat(){
     alert('伝言を書き込むには、引き継ぎコードでの参加が必要です。');
     return;
   }
-  const login  = getChatLogin();
   const msgEl  = document.getElementById('chatMessage');
-  const btn    = document.getElementById('chatSendBtn');
   let message = (msgEl.value || '').trim().slice(0, 140);
   if(!message){ return; }
+  const ok = sendChatMessage(message);
+  if(ok){ msgEl.value = ''; }
+}
+
+/* 安否ステータスのワンタップ送信 */
+function sendSafety(key){
+  if(!isChatLoggedIn()){
+    alert('安否を知らせるには、引き継ぎコードでの参加が必要です。');
+    return;
+  }
+  let st = null;
+  for(let i=0;i<SAFETY_STATUSES.length;i++){ if(SAFETY_STATUSES[i].key === key) st = SAFETY_STATUSES[i]; }
+  if(!st) return;
+  // 入力欄に文字があれば一緒に送る。なければ定型文。
+  const msgEl = document.getElementById('chatMessage');
+  const extra = (msgEl && msgEl.value ? msgEl.value.trim() : '');
+  const body = extra || st.label;
+  const message = ('【' + st.tag + '】' + body).slice(0, 140);
+  const ok = sendChatMessage(message);
+  if(ok && msgEl){ msgEl.value = ''; }
+}
+
+/* 送信の共通処理。オンラインなら送信、オフラインなら下書き保存。
+   送信できたら true。連投・NG・未参加で送れなければ false。 */
+function sendChatMessage(message){
+  const login = getChatLogin();
+  if(!login){ return false; }
+  message = String(message || '').trim().slice(0, 140);
+  if(!message){ return false; }
 
   const now = Date.now();
   if(now - _chatLastSent < CHAT_MIN_INTERVAL){
     alert('連続投稿はできません。少し待ってから送信してください。');
-    return;
+    return false;
   }
   const low = message.toLowerCase();
   if(CHAT_NG.some(function(w){ return low.indexOf(w) >= 0; })){
     alert('不適切な表現が含まれている可能性があります。内容をご確認ください。');
-    return;
+    return false;
   }
 
-  btn.disabled = true; btn.textContent = '送信中…';
+  // オフライン判定：圏外なら下書きに積んで自動再送に回す
+  if(!navigator.onLine){
+    _queueDraft({ message:message, code:login.code, name:login.name });
+    appendLocalChat(login.name || '匿名', message, true);
+    _updateOfflineUI();
+    alert('オフラインのため、伝言を下書きに保存しました。通信が回復すると自動で送信します。');
+    return true;
+  }
+
   _chatLastSent = now;
+  const btn = document.getElementById('chatSendBtn');
+  if(btn){ btn.disabled = true; btn.textContent = '送信中…'; }
+  let sent = false;
   try{
     if(ARTICLES_URL && ARTICLES_URL.indexOf('http') === 0){
       fetch(ARTICLES_URL, {
         method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ type:'chat', message:message, code:login.code, name:login.name })
-      }).catch(function(){});
+      }).catch(function(){
+        // 送信失敗（電波が急に切れた等）は下書きに退避
+        _queueDraft({ message:message, code:login.code, name:login.name });
+        _updateOfflineUI();
+      });
+      sent = true;
     }
-  }catch(e){}
-  appendLocalChat(login.name || '匿名', message);
-  msgEl.value = '';
+  }catch(e){
+    _queueDraft({ message:message, code:login.code, name:login.name });
+  }
+  appendLocalChat(login.name || '匿名', message, false);
   setTimeout(function(){
-    btn.disabled = false; btn.textContent = '送信';
+    if(btn){ btn.disabled = false; btn.textContent = '送信'; }
     loadChat();
   }, 800);
+  return true;
 }
 
-function appendLocalChat(name, message){
+/* ===== オフライン下書き＋自動再送 ===== */
+function _getDrafts(){
+  try{ return JSON.parse(localStorage.getItem(CHAT_DRAFTS_KEY) || '[]'); }catch(e){ return []; }
+}
+function _setDrafts(arr){
+  try{ localStorage.setItem(CHAT_DRAFTS_KEY, JSON.stringify(arr || [])); }catch(e){}
+}
+function _queueDraft(d){
+  const arr = _getDrafts();
+  arr.push({ message:d.message, code:d.code, name:d.name, ts:Date.now() });
+  _setDrafts(arr);
+}
+function _updateOfflineUI(){
+  const note = document.getElementById('offlineNote');
+  const drafts = _getDrafts();
+  if(note){
+    if(!navigator.onLine){
+      note.style.display = '';
+      note.textContent = '📴 オフラインです。送信した伝言は下書きに保存し、つながり次第そのまま自動で送信します。'
+        + (drafts.length ? '（未送信 ' + drafts.length + ' 件）' : '');
+    } else if(drafts.length){
+      note.style.display = '';
+      note.textContent = '📤 未送信の伝言が ' + drafts.length + ' 件あります。送信を試みています…';
+    } else {
+      note.style.display = 'none';
+    }
+  }
+}
+/* 下書きを順番に送る（オンライン時） */
+function _flushDrafts(){
+  if(!navigator.onLine) return;
+  const arr = _getDrafts();
+  if(!arr.length){ _updateOfflineUI(); return; }
+  // 1件ずつ送る（連投制限に当たらないよう間隔をあける）
+  const next = arr[0];
+  try{
+    if(ARTICLES_URL && ARTICLES_URL.indexOf('http') === 0){
+      fetch(ARTICLES_URL, {
+        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ type:'chat', message:next.message, code:next.code, name:next.name })
+      }).then(function(){
+        const rest = _getDrafts(); rest.shift(); _setDrafts(rest);
+        _updateOfflineUI();
+        loadChat();
+        if(rest.length){ setTimeout(_flushDrafts, 1500); }
+      }).catch(function(){
+        // まだ送れない → 後でまた試す
+      });
+    }
+  }catch(e){}
+}
+function _startResendWatcher(){
+  // オンライン復帰イベント＋定期チェックで自動再送
+  window.addEventListener('online', function(){ _updateOfflineUI(); _flushDrafts(); });
+  window.addEventListener('offline', function(){ _updateOfflineUI(); });
+  if(_resendTimer) clearInterval(_resendTimer);
+  _resendTimer = setInterval(function(){
+    if(navigator.onLine && _getDrafts().length){ _flushDrafts(); }
+    _updateOfflineUI();
+  }, 15000);
+  _updateOfflineUI();
+}
+
+/* ===== 安否ボタン・フィルタUIの組み立て ===== */
+function buildSafetyButtons(){
+  const box = document.getElementById('safetyBtns');
+  if(!box) return;
+  box.innerHTML = SAFETY_STATUSES.map(function(st){
+    return '<button type="button" class="safety-btn" style="--sb-col:' + st.color + '" onclick="sendSafety(\'' + st.key + '\')">'
+      + '<span class="sb-dot"></span>' + escapeHtmlA(st.label) + '</button>';
+  }).join('');
+}
+function buildFilterChips(){
+  const box = document.getElementById('filterChips');
+  if(!box) return;
+  const chips = [{ key:'all', label:'すべて' }]
+    .concat(SAFETY_STATUSES.map(function(st){ return { key:st.key, label:st.short, color:st.color }; }))
+    .concat([{ key:'mention', label:'自分宛て' }]);
+  box.innerHTML = chips.map(function(c){
+    const active = (_chatFilter === c.key) ? ' active' : '';
+    const dot = c.color ? '<span class="sb-dot" style="width:7px;height:7px;background:' + c.color + '"></span>' : '';
+    return '<button type="button" class="filter-chip' + active + '" data-filter="' + c.key + '" onclick="setChatFilter(\'' + c.key + '\')">'
+      + dot + escapeHtmlA(c.label) + '<span class="fc-count" id="fc_' + c.key + '"></span></button>';
+  }).join('');
+  _updateFilterCounts();
+}
+function setChatFilter(key){
+  _chatFilter = key;
+  const chips = document.querySelectorAll('.filter-chip');
+  for(let i=0;i<chips.length;i++){
+    chips[i].classList.toggle('active', chips[i].getAttribute('data-filter') === key);
+  }
+  renderChat(_chatList);
+}
+function toggleChatSort(){
+  _chatSort = (_chatSort === 'new') ? 'old' : 'new';
+  const btn = document.getElementById('sortBtn');
+  if(btn) btn.textContent = (_chatSort === 'new') ? '🕒 新しい順' : '🕒 古い順';
+  renderChat(_chatList);
+}
+function _msgMatchesFilter(m){
+  if(_chatFilter === 'all') return true;
+  if(_chatFilter === 'mention') return chatMentionsMe(m.message);
+  const p = parseSafety(m.message);
+  return !!(p.status && p.status.key === _chatFilter);
+}
+function _updateFilterCounts(){
+  const counts = { all:_chatList.length, mention:0 };
+  SAFETY_STATUSES.forEach(function(st){ counts[st.key] = 0; });
+  _chatList.forEach(function(m){
+    const p = parseSafety(m.message);
+    if(p.status) counts[p.status.key] = (counts[p.status.key]||0) + 1;
+    if(chatMentionsMe(m.message)) counts.mention++;
+  });
+  Object.keys(counts).forEach(function(k){
+    const el = document.getElementById('fc_' + k);
+    if(el) el.textContent = counts[k] ? '(' + counts[k] + ')' : '';
+  });
+}
+/* 表示用：フィルタ＋並べ替えを適用したリストを返す */
+function _visibleChatList(){
+  let arr = _chatList.filter(_msgMatchesFilter);
+  if(_chatSort === 'old'){ arr = arr.slice().reverse(); }
+  return arr;
+}
+
+
+
+function appendLocalChat(name, message, isDraft){
   const wrap = document.getElementById('chatMessages');
   if(!wrap) return;
   const empty = wrap.querySelector('.empty');
   if(empty) empty.remove();
+  const p = parseSafety(message);
+  const badge = p.status
+    ? '<span class="st-badge" style="background:' + p.status.color + '">' + p.status.emoji + ' ' + escapeHtmlA(p.status.short) + '</span>'
+    : '';
   const div = document.createElement('div');
-  div.className = 'msg mine';
+  div.className = 'msg mine' + (p.status ? ' has-status' : '');
+  if(p.status) div.style.setProperty('--st-col', p.status.color);
   div.innerHTML = '<div class="msg-head"><span class="msg-name">'
-    + escapeHtmlA(name) + '</span><span class="msg-time">送信中…</span></div>'
-    + '<div class="msg-body">' + escapeHtmlA(message) + '</div>';
+    + escapeHtmlA(name) + '</span><span class="msg-time">' + (isDraft ? '下書き（自動送信待ち）' : '送信中…') + '</span></div>'
+    + '<div class="msg-body">' + badge + escapeHtmlA(p.body) + '</div>';
   wrap.appendChild(div);
   wrap.scrollTop = wrap.scrollHeight;
 }
@@ -754,34 +1028,43 @@ async function loadChat(){
 
 function renderChat(list){
   _chatList = Array.isArray(list) ? list : [];
+  _updateFilterCounts();
   const wrap = document.getElementById('chatMessages');
+  const view = _visibleChatList();
   if(wrap){
-  if(!Array.isArray(list) || !list.length){
+  if(!_chatList.length){
     wrap.innerHTML = '<div class="empty">まだ伝言はありません。<br>最初のひとことを書き残してみませんか？</div>';
     _chatLastCount = 0;
+  } else if(!view.length){
+    wrap.innerHTML = '<div class="empty">この条件に合う伝言はありません。<br>絞り込みを変えてみてください。</div>';
   } else {
   const me = chatSelfId();
   const wasAtBottom = (wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight) < 40;
-  wrap.innerHTML = list.map(function(m){
+  wrap.innerHTML = view.map(function(m){
     const mine = me && m.code && m.code === me;
     const mention = chatMentionsMe(m.message);
+    const p = parseSafety(m.message);
     const name = escapeHtmlA(m.name || '匿名');
     const time = escapeHtmlA(m.time || '');
-    const body = escapeHtmlA(m.message || '');
+    const body = escapeHtmlA(p.body || '');
     const id = escapeHtmlA(String(m.id || ''));
-    return '<div class="msg' + (mine?' mine':'') + (mention&&!mine?' mention':'') + '">'
+    const badge = p.status
+      ? '<span class="st-badge" style="background:' + p.status.color + '">' + p.status.emoji + ' ' + escapeHtmlA(p.status.short) + '</span>'
+      : '';
+    const stStyle = p.status ? ' style="--st-col:' + p.status.color + '"' : '';
+    return '<div class="msg' + (mine?' mine':'') + (mention&&!mine?' mention':'') + (p.status?' has-status':'') + '"' + stStyle + '>'
       + '<div class="msg-head">'
       + '<span class="msg-name">' + name + '</span>'
       + (time ? '<span class="msg-time">' + time + '</span>' : '')
       + '<button type="button" class="msg-report" onclick="reportChat(\'' + id + '\')">⚠ 通報</button>'
       + '</div>'
-      + '<div class="msg-body">' + body + '</div>'
+      + '<div class="msg-body">' + badge + body + '</div>'
       + '</div>';
   }).join('');
-  if(wasAtBottom || list.length !== _chatLastCount){
+  if((_chatSort === 'new') && (wasAtBottom || view.length !== _chatLastCount)){
     wrap.scrollTop = wrap.scrollHeight;
   }
-  _chatLastCount = list.length;
+  _chatLastCount = view.length;
   }
   }
   // 全画面が開いていれば、そちらも更新
@@ -986,17 +1269,22 @@ function fsRenderList(){
   }
   list.innerHTML = items.map(function(m){
     const meta = _fsBubbleMeta(m);
+    const p = parseSafety(m.message);
     const name = escapeHtmlA(m.name || '匿名');
     const time = escapeHtmlA(m.time || '');
-    const body = escapeHtmlA(m.message || '');
+    const body = escapeHtmlA(p.body || '');
     const id = escapeHtmlA(String(m.id || ''));
-    return '<div class="msg' + (meta.mine?' mine':'') + (meta.mention?' mention':'') + '">'
+    const badge = p.status
+      ? '<span class="st-badge" style="background:' + p.status.color + '">' + p.status.emoji + ' ' + escapeHtmlA(p.status.short) + '</span>'
+      : '';
+    const stStyle = p.status ? ' style="--st-col:' + p.status.color + '"' : '';
+    return '<div class="msg' + (meta.mine?' mine':'') + (meta.mention?' mention':'') + (p.status?' has-status':'') + '"' + stStyle + '>'
       + '<div class="msg-head">'
       + '<span class="msg-name">' + name + '</span>'
       + (time ? '<span class="msg-time">' + time + '</span>' : '')
       + '<button type="button" class="msg-report" onclick="reportChat(\'' + id + '\')">⚠ 通報</button>'
       + '</div>'
-      + '<div class="msg-body">' + body + '</div>'
+      + '<div class="msg-body">' + badge + body + '</div>'
       + '</div>';
   }).join('');
   list.scrollTop = list.scrollHeight;
@@ -1075,9 +1363,13 @@ function fsRenderFloat(){
 
     const tag = meta.mine ? '<span class="b-tag">あなた</span>'
               : meta.mention ? '<span class="b-tag">あなた宛て</span>' : '';
-    b.innerHTML = tag
+    const pf = parseSafety(m.message);
+    const stBadge = pf.status
+      ? '<span class="st-badge" style="background:' + pf.status.color + '">' + pf.status.emoji + ' ' + escapeHtmlA(pf.status.short) + '</span>'
+      : '';
+    b.innerHTML = tag + stBadge
       + '<div class="b-name">' + escapeHtmlA(m.name || '匿名') + '</div>'
-      + '<div class="b-body">' + escapeHtmlA(m.message || '') + '</div>'
+      + '<div class="b-body">' + escapeHtmlA(pf.body || '') + '</div>'
       + (m.time ? '<div class="b-time">' + escapeHtmlA(m.time) + '</div>' : '');
 
     b.addEventListener('click', function(){ fsFocusBubble(m, b); });
@@ -1114,10 +1406,14 @@ function fsFocusBubble(m, bubbleEl){
   } catch(e){}
   const tag = meta.mine ? '<span class="b-tag">あなた</span>'
             : meta.mention ? '<span class="b-tag">あなた宛て</span>' : '';
+  const pf = parseSafety(m.message);
+  const stBadge = pf.status
+    ? '<span class="st-badge" style="background:' + pf.status.color + '">' + pf.status.emoji + ' ' + escapeHtmlA(pf.status.short) + '</span>'
+    : '';
   const id = escapeHtmlA(String(m.id || ''));
-  focused.innerHTML = tag
+  focused.innerHTML = tag + stBadge
     + '<div class="b-name">' + escapeHtmlA(m.name || '匿名') + '</div>'
-    + '<div class="b-body">' + escapeHtmlA(m.message || '') + '</div>'
+    + '<div class="b-body">' + escapeHtmlA(pf.body || '') + '</div>'
     + (m.time ? '<div class="b-time">' + escapeHtmlA(m.time) + '</div>' : '')
     + '<div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;">'
     + '<button type="button" class="msg-report" style="font-size:11px;" onclick="reportChat(\'' + id + '\')">⚠ 通報</button>'
@@ -1397,10 +1693,15 @@ function notifyPrefill(){
 
 /* ===== 起動 ===== */
 (function init(){
+  buildSafetyButtons();
+  buildFilterChips();
   refreshChatLoginUI();
+  _startResendWatcher();
   loadChat();
   startChatPolling();
   notifyPrefill();
+  // 起動時、未送信の下書きがあれば送信を試みる
+  if(navigator.onLine && _getDrafts().length){ setTimeout(_flushDrafts, 1200); }
 })();
 </script>
 </body>
