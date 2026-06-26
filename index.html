@@ -106,6 +106,116 @@
   .msg-report{margin-left:auto;font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;}
   .msg-report:hover{color:var(--accent);}
   .msg-body{font-size:14px;color:var(--text);line-height:1.65;word-break:break-word;white-space:pre-wrap;}
+  .msg.mention{border-color:rgba(255,140,0,0.55);background:rgba(255,140,0,0.07);}
+
+  /* ===== 全画面ボタン（ボードヘッダー） ===== */
+  .fs-open-btn{
+    background:transparent;border:1px solid var(--border);color:var(--muted);
+    border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;
+    margin-right:8px;white-space:nowrap;
+  }
+  .fs-open-btn:hover{color:var(--blue);border-color:var(--blue);}
+  .board-head .head-actions{margin-left:auto;display:flex;align-items:center;gap:0;}
+
+  /* ===== 全画面オーバーレイ ===== */
+  .fs-overlay{
+    position:fixed;inset:0;z-index:60;display:none;flex-direction:column;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(0,180,255,0.10), transparent 60%),
+      var(--bg);
+  }
+  .fs-overlay.open{display:flex;}
+  .fs-bar{
+    flex-shrink:0;display:flex;align-items:center;gap:10px;
+    padding:12px 16px;border-bottom:1px solid var(--border);
+    background:rgba(4,8,15,0.6);backdrop-filter:blur(8px);
+  }
+  @media (prefers-color-scheme: light){ .fs-bar{background:rgba(255,255,255,0.7);} }
+  .fs-bar .fs-title{font-size:13px;font-weight:800;color:var(--blue);letter-spacing:.04em;}
+  .fs-bar .fs-spacer{flex:1;}
+  .fs-toggle{
+    display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;
+  }
+  .fs-toggle button{
+    background:transparent;border:none;color:var(--muted);font-size:11.5px;font-weight:700;
+    padding:7px 12px;cursor:pointer;
+  }
+  .fs-toggle button.active{background:var(--blue);color:#fff;}
+  .fs-pausebtn{
+    background:transparent;border:1px solid var(--border);color:var(--muted);
+    border-radius:9px;padding:7px 12px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap;
+  }
+  .fs-pausebtn:hover{color:var(--text);border-color:var(--blue);}
+  .fs-pausebtn.paused{color:var(--blue);border-color:var(--blue);}
+  .fs-close{
+    background:transparent;border:1px solid var(--border);color:var(--muted);
+    width:34px;height:34px;border-radius:9px;font-size:18px;cursor:pointer;line-height:1;flex-shrink:0;
+  }
+  .fs-close:hover{color:var(--text);border-color:var(--blue);}
+
+  /* ふわふわ漂うレイヤー */
+  .fs-float{position:relative;flex:1;overflow:hidden;}
+  .fs-float .fs-hint{
+    position:absolute;left:50%;top:14px;transform:translateX(-50%);
+    font-size:11.5px;color:var(--muted);background:var(--surface2);
+    border:1px solid var(--border);padding:5px 13px;border-radius:20px;z-index:5;
+    pointer-events:none;opacity:.9;
+  }
+  .bubble{
+    position:absolute;max-width:230px;cursor:pointer;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:14px;padding:10px 13px;box-shadow:0 6px 22px rgba(0,0,0,0.28);
+    will-change:transform;
+  }
+  @media (prefers-color-scheme: light){ .bubble{box-shadow:0 4px 18px rgba(0,60,120,0.12);} }
+  .bubble .b-name{font-size:11px;font-weight:800;color:var(--blue);margin-bottom:2px;}
+  .bubble .b-body{font-size:13px;color:var(--text);line-height:1.55;word-break:break-word;
+    display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
+  .bubble .b-time{font-size:9.5px;color:var(--muted);margin-top:3px;}
+  .bubble.mine{border-color:rgba(0,180,255,0.6);background:rgba(0,180,255,0.09);}
+  .bubble.mention{border-color:rgba(255,140,0,0.65);background:rgba(255,140,0,0.10);
+    box-shadow:0 6px 26px rgba(255,140,0,0.22);}
+  .bubble .b-tag{
+    display:inline-block;font-size:9px;font-weight:800;letter-spacing:.05em;
+    padding:1px 7px;border-radius:10px;margin-bottom:4px;
+    background:var(--accent2);color:#fff;
+  }
+  .bubble.mine .b-tag{background:var(--blue);}
+
+  @keyframes drift {
+    0%   { transform: translate(0,0); }
+    25%  { transform: translate(var(--dx1), var(--dy1)); }
+    50%  { transform: translate(var(--dx2), var(--dy2)); }
+    75%  { transform: translate(var(--dx3), var(--dy3)); }
+    100% { transform: translate(0,0); }
+  }
+  .bubble.floating{ animation: drift var(--dur) ease-in-out infinite; animation-delay: var(--delay); }
+  .fs-float.paused .bubble.floating{ animation-play-state: paused; }
+
+  /* 中央に拡大表示された吹き出し */
+  .bubble.focused{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(1);
+    max-width:min(440px, 86vw);z-index:20;animation:none;cursor:default;
+    box-shadow:0 18px 50px rgba(0,0,0,0.5);
+  }
+  .bubble.focused .b-body{-webkit-line-clamp:unset;font-size:16px;line-height:1.7;}
+  .bubble.focused .b-name{font-size:13px;}
+  .bubble.focused .b-time{font-size:11px;margin-top:6px;}
+  .fs-backdrop{
+    position:absolute;inset:0;background:rgba(2,5,10,0.55);z-index:15;display:none;
+  }
+  .fs-backdrop.show{display:block;}
+
+  /* 全画面の一覧ビュー */
+  .fs-list{
+    flex:1;overflow-y:auto;padding:16px;max-width:680px;margin:0 auto;width:100%;
+    display:none;flex-direction:column;gap:9px;
+  }
+  .fs-list.show{display:flex;}
+  .fs-float.hide{display:none;}
+  .fs-list::-webkit-scrollbar{width:7px;}
+  .fs-list::-webkit-scrollbar-thumb{background:rgba(0,180,255,0.22);border-radius:4px;}
+  .fs-empty{text-align:center;color:var(--muted);font-size:13px;padding:40px 12px;}
 
   /* 参加フォーム */
   .login-box{
@@ -278,7 +388,10 @@
   <div class="board">
     <div class="board-head">
       <span class="label">// みんなの伝言</span>
-      <button type="button" class="refresh-btn" onclick="loadChat()">↻ 更新</button>
+      <span class="head-actions">
+        <button type="button" class="fs-open-btn" onclick="openFullscreen()">⛶ 全画面</button>
+        <button type="button" class="refresh-btn" onclick="loadChat()">↻ 更新</button>
+      </span>
     </div>
     <div class="messages" id="chatMessages">
       <div class="empty">伝言を読み込み中…</div>
@@ -353,6 +466,27 @@
 
 </div>
 
+<!-- 全画面（ふわふわ／一覧） -->
+<div class="fs-overlay" id="fsOverlay">
+  <div class="fs-bar">
+    <span class="fs-title">📨 みんなの伝言</span>
+    <span class="fs-spacer"></span>
+    <div class="fs-toggle" role="group" aria-label="表示の切り替え">
+      <button type="button" id="fsTabFloat" class="active" onclick="fsSetView('float')">ふわふわ</button>
+      <button type="button" id="fsTabList" onclick="fsSetView('list')">一覧</button>
+    </div>
+    <button type="button" class="fs-pausebtn" id="fsPauseBtn" onclick="fsTogglePause()">⏸ 動きを止める</button>
+    <button type="button" class="fs-close" onclick="closeFullscreen()" aria-label="閉じる">×</button>
+  </div>
+
+  <div class="fs-float" id="fsFloat">
+    <div class="fs-hint">吹き出しをタップすると拡大して読めます</div>
+    <div class="fs-backdrop" id="fsBackdrop" onclick="fsUnfocus()"></div>
+  </div>
+
+  <div class="fs-list" id="fsList"></div>
+</div>
+
 <!-- プライバシーポリシー モーダル -->
 <div class="pp-overlay" id="ppOverlay" onclick="if(event.target===this)closePrivacy()">
   <div class="pp-modal" role="dialog" aria-modal="true" aria-labelledby="ppTitle">
@@ -377,6 +511,11 @@ const CHAT_LOGIN_KEY = 'chat_login_v1';
 let _chatLastSent = 0;
 let _chatPollTimer = null;
 let _chatLastCount = -1;
+let _chatList = [];
+let _fsOpen = false;
+let _fsView = 'float';   // 'float' | 'list'
+let _fsPaused = false;
+let _fsFocusedId = null;
 
 function escapeHtmlA(s){
   return String(s == null ? '' : s)
@@ -545,22 +684,23 @@ async function loadChat(){
 }
 
 function renderChat(list){
+  _chatList = Array.isArray(list) ? list : [];
   const wrap = document.getElementById('chatMessages');
-  if(!wrap) return;
+  if(wrap){
   if(!Array.isArray(list) || !list.length){
     wrap.innerHTML = '<div class="empty">まだ伝言はありません。<br>最初のひとことを書き残してみませんか？</div>';
     _chatLastCount = 0;
-    return;
-  }
+  } else {
   const me = chatSelfId();
   const wasAtBottom = (wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight) < 40;
   wrap.innerHTML = list.map(function(m){
     const mine = me && m.code && m.code === me;
+    const mention = chatMentionsMe(m.message);
     const name = escapeHtmlA(m.name || '匿名');
     const time = escapeHtmlA(m.time || '');
     const body = escapeHtmlA(m.message || '');
     const id = escapeHtmlA(String(m.id || ''));
-    return '<div class="msg' + (mine?' mine':'') + '">'
+    return '<div class="msg' + (mine?' mine':'') + (mention&&!mine?' mention':'') + '">'
       + '<div class="msg-head">'
       + '<span class="msg-name">' + name + '</span>'
       + (time ? '<span class="msg-time">' + time + '</span>' : '')
@@ -573,6 +713,26 @@ function renderChat(list){
     wrap.scrollTop = wrap.scrollHeight;
   }
   _chatLastCount = list.length;
+  }
+  }
+  // 全画面が開いていれば、そちらも更新
+  if(_fsOpen) fsRender();
+}
+
+/* 自分の表示名宛て（@表示名）かどうか */
+function chatMentionsMe(message){
+  const l = getChatLogin();
+  if(!l || !l.name) return false;
+  const msg = String(message || '');
+  if(msg.indexOf('@') < 0 && msg.indexOf('＠') < 0) return false;
+  const myKey = String(l.name).replace(/[\s\u3000]+/g,'').toLowerCase();
+  if(!myKey) return false;
+  const re = /[@＠]([^\s\u3000@＠、。,]{1,20})/g;
+  let m;
+  while((m = re.exec(msg)) !== null){
+    if(String(m[1]).replace(/[\s\u3000]+/g,'').toLowerCase() === myKey) return true;
+  }
+  return false;
 }
 
 function reportChat(id){
@@ -588,6 +748,238 @@ function reportChat(id){
   }catch(e){}
   alert('通報しました。ご協力ありがとうございます。');
 }
+
+/* ============================================================
+   全画面モード（ふわふわ漂う／一覧）
+   ============================================================ */
+function _prefersReducedMotion(){
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  catch(e){ return false; }
+}
+
+function openFullscreen(){
+  const ov = document.getElementById('fsOverlay');
+  if(!ov) return;
+  _fsOpen = true;
+  ov.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  // 動きが苦手な方の設定を尊重し、初期状態を一覧にする
+  if(_prefersReducedMotion()){
+    _fsPaused = true;
+    fsSetView('list');
+  } else {
+    fsSetView(_fsView);
+  }
+  fsRender();
+}
+
+function closeFullscreen(){
+  const ov = document.getElementById('fsOverlay');
+  if(!ov) return;
+  _fsOpen = false;
+  _fsFocusedId = null;
+  ov.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function fsSetView(view){
+  _fsView = (view === 'list') ? 'list' : 'float';
+  const float = document.getElementById('fsFloat');
+  const list = document.getElementById('fsList');
+  const tabF = document.getElementById('fsTabFloat');
+  const tabL = document.getElementById('fsTabList');
+  const pause = document.getElementById('fsPauseBtn');
+  if(_fsView === 'list'){
+    if(float){ float.classList.add('hide'); }
+    if(list){ list.classList.add('show'); }
+    if(tabF) tabF.classList.remove('active');
+    if(tabL) tabL.classList.add('active');
+    if(pause) pause.style.display = 'none';   // 一覧では不要
+  } else {
+    if(float){ float.classList.remove('hide'); }
+    if(list){ list.classList.remove('show'); }
+    if(tabF) tabF.classList.add('active');
+    if(tabL) tabL.classList.remove('active');
+    if(pause) pause.style.display = '';
+    fsUnfocus();
+  }
+  if(_fsOpen) fsRender();
+}
+
+function fsTogglePause(){
+  _fsPaused = !_fsPaused;
+  const float = document.getElementById('fsFloat');
+  const btn = document.getElementById('fsPauseBtn');
+  if(float) float.classList.toggle('paused', _fsPaused);
+  if(btn){
+    btn.classList.toggle('paused', _fsPaused);
+    btn.textContent = _fsPaused ? '▶ 動きを再開' : '⏸ 動きを止める';
+  }
+}
+
+function fsRender(){
+  if(!_fsOpen) return;
+  if(_fsView === 'list') fsRenderList();
+  else fsRenderFloat();
+}
+
+function _fsBubbleMeta(m){
+  const me = chatSelfId();
+  const mine = me && m.code && m.code === me;
+  const mention = chatMentionsMe(m.message);
+  return { mine: mine, mention: (mention && !mine) };
+}
+
+function fsRenderList(){
+  const list = document.getElementById('fsList');
+  if(!list) return;
+  if(!_chatList.length){
+    list.innerHTML = '<div class="fs-empty">まだ伝言はありません。</div>';
+    return;
+  }
+  list.innerHTML = _chatList.map(function(m){
+    const meta = _fsBubbleMeta(m);
+    const name = escapeHtmlA(m.name || '匿名');
+    const time = escapeHtmlA(m.time || '');
+    const body = escapeHtmlA(m.message || '');
+    const id = escapeHtmlA(String(m.id || ''));
+    return '<div class="msg' + (meta.mine?' mine':'') + (meta.mention?' mention':'') + '">'
+      + '<div class="msg-head">'
+      + '<span class="msg-name">' + name + '</span>'
+      + (time ? '<span class="msg-time">' + time + '</span>' : '')
+      + '<button type="button" class="msg-report" onclick="reportChat(\'' + id + '\')">⚠ 通報</button>'
+      + '</div>'
+      + '<div class="msg-body">' + body + '</div>'
+      + '</div>';
+  }).join('');
+  list.scrollTop = list.scrollHeight;
+}
+
+function fsRenderFloat(){
+  const float = document.getElementById('fsFloat');
+  if(!float) return;
+  // 既存の吹き出しを消す（ヒントと背景は残す）
+  Array.prototype.slice.call(float.querySelectorAll('.bubble')).forEach(function(b){ b.remove(); });
+
+  if(!_chatList.length){
+    let empty = float.querySelector('.fs-empty');
+    if(!empty){
+      empty = document.createElement('div');
+      empty.className = 'fs-empty';
+      empty.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);';
+      empty.textContent = 'まだ伝言はありません。';
+      float.appendChild(empty);
+    }
+    return;
+  } else {
+    const empty = float.querySelector('.fs-empty');
+    if(empty) empty.remove();
+  }
+
+  const W = float.clientWidth || window.innerWidth;
+  const H = float.clientHeight || (window.innerHeight - 60);
+  // 直近の伝言を最大40件、画面に漂わせる（多すぎると重なるため）
+  const items = _chatList.slice(Math.max(0, _chatList.length - 40));
+  const reduce = _prefersReducedMotion();
+
+  // 重なりを抑えるため、ゆるいグリッドに配置してから揺らす
+  const n = items.length;
+  const cols = Math.max(2, Math.min(5, Math.round(Math.sqrt(n * (W / Math.max(H,1)) ))));
+  const rows = Math.ceil(n / cols);
+  const cellW = W / cols;
+  const cellH = H / Math.max(rows, 1);
+
+  items.forEach(function(m, i){
+    const meta = _fsBubbleMeta(m);
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    // セル内のランダムな位置（端に寄りすぎないよう余白を取る）
+    const padX = Math.min(40, cellW * 0.12);
+    const padY = Math.min(30, cellH * 0.12);
+    let x = col * cellW + padX + Math.random() * Math.max(1, (cellW - padX*2 - 200));
+    let y = row * cellH + padY + Math.random() * Math.max(1, (cellH - padY*2 - 90));
+    x = Math.max(6, Math.min(x, W - 180));
+    y = Math.max(6, Math.min(y, H - 90));
+
+    const b = document.createElement('div');
+    b.className = 'bubble' + (meta.mine?' mine':'') + (meta.mention?' mention':'') + (reduce?'':' floating');
+    b.style.left = Math.round(x) + 'px';
+    b.style.top = Math.round(y) + 'px';
+
+    if(!reduce){
+      // 不規則なドリフト量・周期をランダムに
+      const amp = function(){ return (8 + Math.random()*22) * (Math.random()<0.5?-1:1); };
+      b.style.setProperty('--dx1', amp().toFixed(0)+'px');
+      b.style.setProperty('--dy1', amp().toFixed(0)+'px');
+      b.style.setProperty('--dx2', amp().toFixed(0)+'px');
+      b.style.setProperty('--dy2', amp().toFixed(0)+'px');
+      b.style.setProperty('--dx3', amp().toFixed(0)+'px');
+      b.style.setProperty('--dy3', amp().toFixed(0)+'px');
+      b.style.setProperty('--dur', (11 + Math.random()*10).toFixed(1)+'s');
+      b.style.setProperty('--delay', (-Math.random()*8).toFixed(1)+'s');
+    }
+
+    const tag = meta.mine ? '<span class="b-tag">あなた</span>'
+              : meta.mention ? '<span class="b-tag">あなた宛て</span>' : '';
+    b.innerHTML = tag
+      + '<div class="b-name">' + escapeHtmlA(m.name || '匿名') + '</div>'
+      + '<div class="b-body">' + escapeHtmlA(m.message || '') + '</div>'
+      + (m.time ? '<div class="b-time">' + escapeHtmlA(m.time) + '</div>' : '');
+
+    b.addEventListener('click', function(){ fsFocusBubble(m, b); });
+    float.appendChild(b);
+  });
+
+  if(_fsPaused) float.classList.add('paused');
+}
+
+function fsFocusBubble(m, bubbleEl){
+  // すでに別のものが拡大中なら戻す
+  fsUnfocus();
+  const float = document.getElementById('fsFloat');
+  const backdrop = document.getElementById('fsBackdrop');
+  if(!float) return;
+  _fsFocusedId = String(m.id || '');
+
+  const meta = _fsBubbleMeta(m);
+  const focused = document.createElement('div');
+  focused.className = 'bubble focused' + (meta.mine?' mine':'') + (meta.mention?' mention':'');
+  focused.id = 'fsFocusedBubble';
+  const tag = meta.mine ? '<span class="b-tag">あなた</span>'
+            : meta.mention ? '<span class="b-tag">あなた宛て</span>' : '';
+  const id = escapeHtmlA(String(m.id || ''));
+  focused.innerHTML = tag
+    + '<div class="b-name">' + escapeHtmlA(m.name || '匿名') + '</div>'
+    + '<div class="b-body">' + escapeHtmlA(m.message || '') + '</div>'
+    + (m.time ? '<div class="b-time">' + escapeHtmlA(m.time) + '</div>' : '')
+    + '<div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;">'
+    + '<button type="button" class="msg-report" style="font-size:11px;" onclick="reportChat(\'' + id + '\')">⚠ 通報</button>'
+    + '<button type="button" class="fs-pausebtn" style="padding:5px 12px;" onclick="fsUnfocus()">閉じる</button>'
+    + '</div>';
+  focused.addEventListener('click', function(ev){ ev.stopPropagation(); });
+  if(backdrop) backdrop.classList.add('show');
+  float.appendChild(focused);
+}
+
+function fsUnfocus(){
+  _fsFocusedId = null;
+  const focused = document.getElementById('fsFocusedBubble');
+  if(focused) focused.remove();
+  const backdrop = document.getElementById('fsBackdrop');
+  if(backdrop) backdrop.classList.remove('show');
+}
+
+// Escで全画面を閉じる（拡大中ならまず拡大を閉じる）
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Escape') return;
+  if(_fsFocusedId){ fsUnfocus(); return; }
+  if(_fsOpen) closeFullscreen();
+});
+
+// 画面回転・リサイズ時、ふわふわは再配置
+window.addEventListener('resize', function(){
+  if(_fsOpen && _fsView === 'float' && !_fsFocusedId) fsRenderFloat();
+});
 
 /* ===== 接続ステータス表示 ===== */
 function setStatus(ok){
